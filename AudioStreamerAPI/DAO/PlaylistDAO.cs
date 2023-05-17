@@ -1,7 +1,7 @@
 ﻿using AudioStreamerAPI.Constants;
 using AudioStreamerAPI.Models;
 
-namespace AudioStreamerAPI.Repositories
+namespace AudioStreamerAPI.DAO
 {
     public class PlaylistDAO
     {
@@ -191,7 +191,8 @@ namespace AudioStreamerAPI.Repositories
         public OperationalStatus DeletePlaylist(int id)
         {
             Playlist? playlistHasId = GetPlaylist(id);
-            if (playlistHasId != null) { 
+            if (playlistHasId != null)
+            {
                 try
                 {
                     var context = new fsnvdezgContext();

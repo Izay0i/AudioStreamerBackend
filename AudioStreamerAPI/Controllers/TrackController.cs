@@ -1,6 +1,8 @@
 ﻿using AudioStreamerAPI.Constants;
+using AudioStreamerAPI.DTO;
 using AudioStreamerAPI.Models;
 using AudioStreamerAPI.Repositories;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AudioStreamerAPI.Controllers
@@ -10,27 +12,32 @@ namespace AudioStreamerAPI.Controllers
     public class TrackController : ControllerBase
     {
         private readonly ITrackRepository _repo;
+        private readonly IMapper _mapper;
 
-        public TrackController(ITrackRepository repo)
+        public TrackController(ITrackRepository repo, IMapper mapper)
         {
             _repo = repo;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Track>>> GetTracks()
+        public async Task<ActionResult<IEnumerable<TrackDTO>>> GetTracks()
         {
-            return await Task.FromResult(_repo.GetTracks().ToList());
+            var tracks = _mapper.Map<IEnumerable<TrackDTO>>(_repo.GetTracks());
+            return await Task.FromResult(tracks.ToList());
         }
 
         [HttpGet("{keyword}")]
-        public async Task<ActionResult<IEnumerable<Track>>> SearchTracks(string keyword)
+        public async Task<ActionResult<IEnumerable<TrackDTO>>> SearchTracks(string keyword)
         {
-            return await Task.FromResult(_repo.SearchTracks(keyword).ToList());
+            var tracks = _mapper.Map<IEnumerable<TrackDTO>>(_repo.SearchTracks(keyword));
+            return await Task.FromResult(tracks.ToList());
         }
 
         [HttpPost]
-        public IActionResult AddTrack([FromBody] Track track)
+        public IActionResult AddTrack([FromBody] TrackDTO trackDTO)
         {
+            var track = _mapper.Map<Track>(trackDTO);
             if (_repo.AddTrack(track) == OperationalStatus.SUCCESS)
             {
                 return Ok(track);
@@ -39,8 +46,9 @@ namespace AudioStreamerAPI.Controllers
         }
 
         [HttpPut]
-        public IActionResult UpdateTrackInfo([FromBody] Track track)
+        public IActionResult UpdateTrackInfo([FromBody] TrackDTO trackDTO)
         {
+            var track = _mapper.Map<Track>(trackDTO);
             if (_repo.UpdateTrack(track) == OperationalStatus.SUCCESS)
             {
                 return Ok(track);

@@ -41,7 +41,7 @@ namespace AudioStreamerAPI.Controllers
 
         [RequestSizeLimit(AzureConstants.MAX_FILE_SIZE_IN_BYTES)]
         [RequestFormLimits(MultipartBodyLengthLimit = AzureConstants.MAX_FILE_SIZE_IN_BYTES)]
-        [HttpPost]
+        [HttpPost("upload")]
         public async Task<IActionResult> UploadMedia(int id, IFormFile file, string containerName)
         {
             try
@@ -55,7 +55,7 @@ namespace AudioStreamerAPI.Controllers
             }
         }
 
-        [HttpDelete]
+        [HttpDelete("delete")]
         public async Task<IActionResult> DeleteMedia(string url, string containerName)
         {
             try

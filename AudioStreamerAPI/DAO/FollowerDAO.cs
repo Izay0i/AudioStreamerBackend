@@ -1,7 +1,7 @@
 ﻿using AudioStreamerAPI.Constants;
 using AudioStreamerAPI.Models;
 
-namespace AudioStreamerAPI.Repositories
+namespace AudioStreamerAPI.DAO
 {
     public class FollowerDAO
     {
@@ -21,6 +21,30 @@ namespace AudioStreamerAPI.Repositories
                     return _instance;
                 }
             }
+        }
+
+        public IEnumerable<Member> GetFollowingsFromUser(int id)
+        {
+            List<Member> followings = new();
+            var member = MemberDAO.Instance.GetMember(id);
+            if (member != null && member.FollowingIds!.Length != 0)
+            {
+                try
+                {
+                    var context = new fsnvdezgContext();
+                    var filteredList = new List<Member?>();
+                    foreach (var memberId in member.FollowingIds)
+                    {
+                        filteredList.Add(context.Members.FirstOrDefault(m => m.MemberId == memberId));
+                    }
+                    followings = filteredList.Where(m => m != null).Distinct().ToList()!;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            return followings;
         }
 
         public OperationalStatus FollowMember(int id, int followingId)

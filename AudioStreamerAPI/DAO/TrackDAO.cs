@@ -1,7 +1,7 @@
 ﻿using AudioStreamerAPI.Constants;
 using AudioStreamerAPI.Models;
 
-namespace AudioStreamerAPI.Repositories
+namespace AudioStreamerAPI.DAO
 {
     public class TrackDAO
     {
@@ -49,7 +49,8 @@ namespace AudioStreamerAPI.Repositories
                 filteredTracks.AddRange(context.Tracks.Where(t => t.Tags!.Contains(keyword.Trim())));
                 tracks = filteredTracks.Distinct().ToList();
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 throw new Exception(ex.Message);
             }
             return tracks;
@@ -132,7 +133,8 @@ namespace AudioStreamerAPI.Repositories
                     var context = new fsnvdezgContext();
                     context.Tracks.Attach(trackHasId);
 
-                    if (track.TrackName != null) { 
+                    if (track.TrackName != null)
+                    {
                         trackHasId.TrackName = track.TrackName;
                     }
 
@@ -167,7 +169,7 @@ namespace AudioStreamerAPI.Repositories
         public OperationalStatus DeleteTrack(int id)
         {
             Track? trackHasId = GetTrack(id);
-            if (trackHasId != null )
+            if (trackHasId != null)
             {
                 try
                 {

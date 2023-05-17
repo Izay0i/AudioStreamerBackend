@@ -2,6 +2,8 @@
 using AudioStreamerAPI.Repositories;
 using AudioStreamerAPI.Constants;
 using Microsoft.AspNetCore.Mvc;
+using AudioStreamerAPI.DTO;
+using AutoMapper;
 
 namespace AudioStreamerAPI.Controllers
 {
@@ -10,38 +12,43 @@ namespace AudioStreamerAPI.Controllers
     public class MemberController : ControllerBase
     {
         private readonly IMemberRepository _repo;
+        private readonly IMapper _mapper;
 
-        public MemberController(IMemberRepository repo)
+        public MemberController(IMemberRepository repo, IMapper mapper)
         {
             _repo = repo;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Member>>> GetMembers()
+        public async Task<ActionResult<IEnumerable<MemberDTO>>> GetMembers()
         {
-            return await Task.FromResult(_repo.GetMembers().ToList());
+            var members = _mapper.Map<IEnumerable<MemberDTO>>(_repo.GetMembers());
+            return await Task.FromResult(members.ToList());
         }
 
-        [HttpGet("{keyword}")]
-        public async Task<ActionResult<IEnumerable<Member>>> SearchMembers(string keyword)
+        [HttpGet("search/{keyword}")]
+        public async Task<ActionResult<IEnumerable<MemberDTO>>> SearchMembers(string keyword)
         {
-            return await Task.FromResult(_repo.SearchMembers(keyword).ToList());
+            var members = _mapper.Map<IEnumerable<MemberDTO>>(_repo.GetMembers());
+            return await Task.FromResult(members.ToList());
         }
 
         [HttpGet("id/{id}")]
         public IActionResult GetMember(int id)
         {
-            Member? member = _repo.GetMember(id);
-            if (member != null)
+            MemberDTO? memberDTO = _mapper.Map<MemberDTO>(_repo.GetMember(id));
+            if (memberDTO != null)
             {
-                return Ok(member);
+                return Ok(memberDTO);
             }
             return NotFound(id);
         }
 
-        [HttpPut]
-        public IActionResult UpdateMemberInfo([FromBody] Member member)
+        [HttpPut("update")]
+        public IActionResult UpdateMemberInfo([FromBody] MemberDTO memberDTO)
         {
+            var member = _mapper.Map<Member>(memberDTO);
             if (_repo.UpdateMember(member) == OperationalStatus.SUCCESS)
             {
                 return Ok(member);
@@ -49,7 +56,7 @@ namespace AudioStreamerAPI.Controllers
             return NotFound(new object[] { member.Email, member.Password, "Invalid credentials." });
         }
 
-        [HttpDelete]
+        [HttpDelete("delete")]
         public IActionResult DeleteMember(string email) {
             if (_repo.DeleteMember(email) == OperationalStatus.SUCCESS)
             {

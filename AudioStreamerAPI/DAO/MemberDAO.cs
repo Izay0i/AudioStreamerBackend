@@ -2,7 +2,7 @@
 using AudioStreamerAPI.Helpers;
 using AudioStreamerAPI.Models;
 
-namespace AudioStreamerAPI.Repositories
+namespace AudioStreamerAPI.DAO
 {
     public class MemberDAO
     {
@@ -51,7 +51,7 @@ namespace AudioStreamerAPI.Repositories
 
                 members = filteredMembers.Distinct().ToList();
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
@@ -125,11 +125,6 @@ namespace AudioStreamerAPI.Repositories
             Member? memberHasEmail = GetMember(member.Email);
             if (memberHasEmail != null)
             {
-                /*if (CredentialsHelper.VerifyPassword(memberHasEmail.Password, member.Password) == OperationalStatus.FAILURE) 
-                {
-                    return OperationalStatus.FAILURE;
-                }*/
-
                 try
                 {
                     var context = new fsnvdezgContext();
