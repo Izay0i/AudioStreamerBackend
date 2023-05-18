@@ -109,10 +109,10 @@ namespace AudioStreamerAPI.DAO
                     Track t = new()
                     {
                         TrackName = track.TrackName,
+                        ArtistName = track.ArtistName,
                         Description = track.Description,
                         Url = track.Url,
                         Thumbnail = track.Thumbnail,
-                        AuthorsIds = track.AuthorsIds,
                         Tags = track.Tags,
                     };
 

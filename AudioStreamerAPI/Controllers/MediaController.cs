@@ -1,5 +1,7 @@
 ﻿using AudioStreamerAPI.Constants;
 using AudioStreamerAPI.Helpers;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 
@@ -17,12 +19,29 @@ namespace AudioStreamerAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetMedia(string src, string contentType)
+        public async Task<IActionResult> GetMedia(string src, string containerName, string contentType)
         {
-            var client = _httpClientFactory.CreateClient();
-            var contentInBytes = await client.GetByteArrayAsync(src);
-            Console.WriteLine("Content-Range: {0}", Request.Headers.Range.ToString());
-            return File(contentInBytes, contentType, true);
+            var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+            var connectionString = config.GetSection("Azure")["URL"];
+            
+            var storageUri = config.GetSection("Azure")["StorageURI"];
+            var relativeUri = FileHelper.GetBlobFromUri(storageUri, src, containerName);
+
+            BlobServiceClient blobServiceClient = new(connectionString);
+            BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            var blob = blobContainerClient.GetBlobClient(relativeUri);
+
+            var options = new StorageTransferOptions
+            {
+                InitialTransferSize = AzureConstants.INITIAL_TRANSFER_SIZE,
+                MaximumConcurrency = AzureConstants.MAX_CONCURRENCY,
+                MaximumTransferSize = AzureConstants.MAX_TRANSFER_SIZE,
+            };
+
+            var stream = new MemoryStream();
+            await blob.DownloadToAsync(stream, null, options);
+            stream.Position = 0;
+            return File(stream, contentType, true);
         }
 
         [HttpGet("stream")]
@@ -39,8 +58,8 @@ namespace AudioStreamerAPI.Controllers
             return File(stream, contentType, true);
         }
 
-        [RequestSizeLimit(AzureConstants.MAX_FILE_SIZE_IN_BYTES)]
-        [RequestFormLimits(MultipartBodyLengthLimit = AzureConstants.MAX_FILE_SIZE_IN_BYTES)]
+        [RequestSizeLimit(AzureConstants.MAX_FILE_SIZE)]
+        [RequestFormLimits(MultipartBodyLengthLimit = AzureConstants.MAX_FILE_SIZE)]
         [HttpPost("upload")]
         public async Task<IActionResult> UploadMedia(int id, IFormFile file, string containerName)
         {

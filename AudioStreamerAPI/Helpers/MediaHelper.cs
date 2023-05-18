@@ -1,7 +1,5 @@
 ﻿using AudioStreamerAPI.Constants;
-using Azure.Storage;
 using Azure.Storage.Blobs;
-using Microsoft.AspNetCore.Mvc;
 
 namespace AudioStreamerAPI.Helpers
 {
@@ -11,8 +9,8 @@ namespace AudioStreamerAPI.Helpers
         {
             try
             {
-                var fName = FileHelper._GenerateFileName(file.FileName, id.ToString());
-                var fileUrl = string.Empty;
+                var fName = FileHelper.GenerateFileName(file.FileName, id.ToString());
+                var fileUri = string.Empty;
 
                 var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
                 var connectionString = config.GetSection("Azure")["URL"];
@@ -28,18 +26,18 @@ namespace AudioStreamerAPI.Helpers
                         {
                             TransferOptions = new()
                             {
-                                MaximumTransferSize = AzureConstants.MAX_FILE_SIZE_IN_BYTES,
+                                MaximumTransferSize = AzureConstants.MAX_FILE_SIZE,
                             }
                         });
                     }
-                    fileUrl = blob.Uri.AbsoluteUri;
+                    fileUri = blob.Uri.AbsoluteUri;
                 }
                 catch (Exception ex)
                 {
                     throw new Exception(ex.Message);
                 }
 
-                return fileUrl;
+                return fileUri;
             }
             catch (Exception ex)
             {
@@ -47,19 +45,22 @@ namespace AudioStreamerAPI.Helpers
             }
         }
 
-        public static async Task<OperationalStatus> DeleteMediaAsync(string url, string containerName)
+        public static async Task<OperationalStatus> DeleteMediaAsync(string uri, string containerName)
         {
             try
             {
                 var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
                 var connectionString = config.GetSection("Azure")["URL"];
 
+                var storageUri = config.GetSection("Azure")["StorageURI"];
+                var relativeUri = FileHelper.GetBlobFromUri(storageUri, uri, containerName);
+
                 BlobContainerClient client = new(connectionString, containerName);
-                await client.GetBlobClient(url).DeleteAsync();
+                await client.GetBlobClient(relativeUri).DeleteAsync();
 
                 return new OperationalStatus
                 {
-                    StatusCode = OperationalStatusEnums.NoContent,
+                    StatusCode = OperationalStatusEnums.Ok,
                     Message = $"Successfully deleted media inside container: {containerName}",
                 };
             }
@@ -68,7 +69,7 @@ namespace AudioStreamerAPI.Helpers
                 return new OperationalStatus
                 {
                     StatusCode = OperationalStatusEnums.NotFound,
-                    Message = $"Failed to find: {url} inside container: {containerName}",
+                    Message = $"Failed to find: {uri} inside container: {containerName}",
                 };
             }
         }

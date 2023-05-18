@@ -1,26 +1,29 @@
-﻿using AudioStreamerAPI.Constants;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AudioStreamerAPI.Models
 {
     public partial class Track
     {
-        [Key]
+        public Track()
+        {
+            Closedcaptions = new HashSet<Closedcaption>();
+            Memberstats = new HashSet<Memberstat>();
+        }
+
         public int TrackId { get; set; }
-        [Required]
-        [DataType(DataType.Text)]
-        [MinLength(LengthConstants.MIN_NAME_LENGTH), MaxLength(LengthConstants.MAX_NAME_LENGTH)]
+        public int MemberId { get; set; }
         public string TrackName { get; set; } = null!;
-        [MaxLength(LengthConstants.MAX_NAME_LENGTH)]
+        public string ArtistName { get; set; } = null!;
         public string Description { get; set; } = null!;
         public string Url { get; set; } = null!;
         public string Thumbnail { get; set; } = null!;
-        public int[] AuthorsIds { get; set; } = null!;
-        [DefaultValue(new string[0])]
         public string[]? Tags { get; set; }
-        public DateTime DateUploaded { get; set; }
-        public int ViewCountPerDay { get; set; }
-        public int ViewCountTotal { get; set; }
+        public int ViewCountsPerDay { get; set; }
+        public DateTime DateCreated { get; set; }
+
+        public virtual Member Member { get; set; } = null!;
+        public virtual ICollection<Closedcaption> Closedcaptions { get; set; }
+        public virtual ICollection<Memberstat> Memberstats { get; set; }
     }
 }
