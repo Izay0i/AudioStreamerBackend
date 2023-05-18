@@ -1,8 +1,9 @@
 ﻿using AudioStreamerAPI.Repositories;
-using AudioStreamerAPI.Constants;
 using Microsoft.AspNetCore.Mvc;
 using AudioStreamerAPI.DTO;
+using AudioStreamerAPI.Constants;
 using AutoMapper;
+using System.Net;
 
 namespace AudioStreamerAPI.Controllers
 {
@@ -29,21 +30,15 @@ namespace AudioStreamerAPI.Controllers
         [HttpPost("user/{id}/follow/{followingId}")]
         public IActionResult FollowMember(int id, int followingId)
         {
-            if (_repo.FollowMember(id, followingId) == OperationalStatus.SUCCESS)
-            {
-                return Ok();
-            }
-            return NotFound(new object[] { id, followingId });
+            var result = _repo.FollowMember(id, followingId);
+            return StatusCode((int)result.StatusCode, result.Message);
         }
 
         [HttpDelete("user/{id}/unfollow/{followingId}")]
         public IActionResult UnfollowMember(int id, int followingId)
         {
-            if (_repo.UnfollowMember(id, followingId) == OperationalStatus.SUCCESS)
-            {
-                return Ok();
-            }
-            return NotFound(new object[] { id, followingId });
+            var result = _repo.UnfollowMember(id, followingId);
+            return StatusCode((int)result.StatusCode, result.Message);
         }
     }
 }

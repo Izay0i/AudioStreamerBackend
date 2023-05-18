@@ -9,7 +9,7 @@ namespace AudioStreamerAPI.DTO
         public int MemberId { get; set; }
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; } = null!;
         [MinLength(LengthConstants.MIN_NAME_LENGTH), MaxLength(LengthConstants.MAX_DISPLAY_NAME_LENGTH)]
         public string DisplayName { get; set; } = null!;
         public string NameTag { get; set; } = null!;

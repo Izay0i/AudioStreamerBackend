@@ -1,5 +1,5 @@
-﻿using AudioStreamerAPI.Constants;
-using AudioStreamerAPI.Models;
+﻿using AudioStreamerAPI.Models;
+using AudioStreamerAPI.Constants;
 
 namespace AudioStreamerAPI.DAO
 {
@@ -121,7 +121,11 @@ namespace AudioStreamerAPI.DAO
             Playlist? playlistHasId = GetPlaylist(playlist.PlaylistId);
             if (playlistHasId != null)
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Conflict,
+                    Message = "Playlist already exists.",
+                };
             }
             else
             {
@@ -138,7 +142,11 @@ namespace AudioStreamerAPI.DAO
 
                     context.Playlists.Add(p);
                     context.SaveChanges();
-                    return OperationalStatus.SUCCESS;
+                    return new OperationalStatus 
+                    { 
+                        StatusCode = OperationalStatusEnums.Created,
+                        Message = "Successfully added playlist to user's directory.",
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -175,7 +183,11 @@ namespace AudioStreamerAPI.DAO
                     }
 
                     context.SaveChanges();
-                    return OperationalStatus.SUCCESS;
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.Ok,
+                        Message = "Successfully updated user's playlist.",
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -184,7 +196,11 @@ namespace AudioStreamerAPI.DAO
             }
             else
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.NotFound,
+                    Message = $"Couldn't find playlist with Id: {playlist.PlaylistId}.",
+                };
             }
         }
 
@@ -198,7 +214,11 @@ namespace AudioStreamerAPI.DAO
                     var context = new fsnvdezgContext();
                     context.Playlists.Remove(playlistHasId);
                     context.SaveChanges();
-                    return OperationalStatus.SUCCESS;
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.Ok,
+                        Message = "Successfully deleted playlist from user's directory."
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -207,7 +227,11 @@ namespace AudioStreamerAPI.DAO
             }
             else
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.NotFound,
+                    Message = $"Couldn't find playlist with Id: {id}.",
+                };
             }
         }
 
@@ -218,13 +242,17 @@ namespace AudioStreamerAPI.DAO
 
             if (playlist == null || track == null)
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.NotFound,
+                    Message = $"Neither playlist with Id: {id} nor track with Id: {trackId} could be found.",
+                };
             }
 
             try
             {
-                var context = new fsnvdezgContext();
-                context.Playlists.Attach(playlist);
+                /*var context = new fsnvdezgContext();
+                context.Playlists.Attach(playlist);*/
 
                 if (playlist.TracksIds!.Length == 0)
                 {
@@ -240,8 +268,13 @@ namespace AudioStreamerAPI.DAO
                     tracks.CopyTo(playlist.TracksIds, 0);
                 }
 
-                context.SaveChanges();
-                return OperationalStatus.SUCCESS;
+                //context.SaveChanges();
+                UpdatePlaylist(playlist);
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Ok,
+                    Message = $"Successfully added track to playlist with Id: {id}.",
+                };
             }
             catch (Exception ex)
             {
@@ -256,17 +289,25 @@ namespace AudioStreamerAPI.DAO
 
             if (playlist == null || track == null)
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.NotFound,
+                    Message = $"Neither playlist with Id: {id} nor track with Id: {trackId} could be found.",
+                };
             }
 
             try
             {
-                var context = new fsnvdezgContext();
-                context.Playlists.Attach(playlist);
+                /*var context = new fsnvdezgContext();
+                context.Playlists.Attach(playlist);*/
 
                 if (playlist.TracksIds!.Length == 0)
                 {
-                    return OperationalStatus.FAILURE;
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = $"The playlist is empty, there's nothing to remove.",
+                    };
                 }
                 else
                 {
@@ -278,8 +319,13 @@ namespace AudioStreamerAPI.DAO
                     tracks.CopyTo(playlist.TracksIds, 0);
                 }
 
-                context.SaveChanges();
-                return OperationalStatus.SUCCESS;
+                //context.SaveChanges();
+                UpdatePlaylist(playlist);
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Ok,
+                    Message = $"Successfully removed track from playlist with Id: {id}.",
+                };
             }
             catch (Exception ex)
             {

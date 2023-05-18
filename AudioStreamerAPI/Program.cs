@@ -24,7 +24,7 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(config => config.EnableAnnotations());
 
 var app = builder.Build();
 
@@ -34,10 +34,10 @@ app.UseDeveloperExceptionPage();
 app.UseSwagger();
 if (!app.Environment.IsDevelopment())
 {
-    app.UseSwaggerUI(c =>
+    app.UseSwaggerUI(config =>
     {
-        c.RoutePrefix = string.Empty;
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "V1 Docs");
+        config.RoutePrefix = string.Empty;
+        config.SwaggerEndpoint("/swagger/v1/swagger.json", "V1 Docs");
     });
 }
 else

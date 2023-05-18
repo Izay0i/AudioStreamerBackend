@@ -1,6 +1,6 @@
-﻿using AudioStreamerAPI.Constants;
-using AudioStreamerAPI.Helpers;
+﻿using AudioStreamerAPI.Helpers;
 using AudioStreamerAPI.Models;
+using AudioStreamerAPI.Constants;
 
 namespace AudioStreamerAPI.DAO
 {
@@ -93,7 +93,11 @@ namespace AudioStreamerAPI.DAO
             Member? memberHasEmail = GetMember(member.Email);
             if (memberHasEmail != null)
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.BadRequest,
+                    Message = "Invalid request. I demand that, under no circumstances, should you ever try that again.",
+                };
             }
             else
             {
@@ -111,7 +115,11 @@ namespace AudioStreamerAPI.DAO
 
                     context.Members.Add(m);
                     context.SaveChanges();
-                    return OperationalStatus.SUCCESS;
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.Created,
+                        Message = $"Successfully registered member with {m.Email}.",
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -153,7 +161,11 @@ namespace AudioStreamerAPI.DAO
                     }
 
                     context.SaveChanges();
-                    return OperationalStatus.SUCCESS;
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.Ok,
+                        Message = "Successfully updated member's info.",
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -162,7 +174,11 @@ namespace AudioStreamerAPI.DAO
             }
             else
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.NotFound,
+                    Message = "Couldn't find member.",
+                };
             }
         }
 
@@ -176,7 +192,11 @@ namespace AudioStreamerAPI.DAO
                     var context = new fsnvdezgContext();
                     context.Members.Remove(memberHasEmail);
                     context.SaveChanges();
-                    return OperationalStatus.SUCCESS;
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.Ok,
+                        Message = $"Successfully deleted member with {email}.",
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -185,7 +205,11 @@ namespace AudioStreamerAPI.DAO
             }
             else
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.NotFound,
+                    Message = "Couldn't find member.",
+                };
             }
         }
     }

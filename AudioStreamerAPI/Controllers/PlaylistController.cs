@@ -1,6 +1,5 @@
 ﻿using AudioStreamerAPI.Models;
 using AudioStreamerAPI.Repositories;
-using AudioStreamerAPI.Constants;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using AudioStreamerAPI.DTO;
@@ -52,14 +51,16 @@ namespace AudioStreamerAPI.Controllers
         public IActionResult AddPlaylist([FromBody] PlaylistDTO playlistDTO)
         {
             var playlist = _mapper.Map<Playlist>(playlistDTO);
-            return _repo.AddPlaylist(playlist) == OperationalStatus.SUCCESS ? Ok(playlist) : BadRequest(playlist);
+            var result = _repo.AddPlaylist(playlist);
+            return StatusCode((int)result.StatusCode, result.Message);
         }
 
         [HttpPut]
         public IActionResult UpdatePlaylist([FromBody] PlaylistDTO playlistDTO)
         {
             var playlist = _mapper.Map<Playlist>(playlistDTO);
-            return _repo.UpdatePlaylist(playlist) == OperationalStatus.SUCCESS ? Ok(playlist) : NotFound(playlist);
+            var result = _repo.UpdatePlaylist(playlist);
+            return StatusCode((int)result.StatusCode, result.Message);
         }
 
         [HttpDelete]
@@ -68,7 +69,8 @@ namespace AudioStreamerAPI.Controllers
             Playlist? playlist = _repo.GetPlaylist(id);
             if (playlist != null)
             {
-                return _repo.DeletePlaylist(id) == OperationalStatus.SUCCESS ? Ok(id) : NotFound(id);
+                var result = _repo.DeletePlaylist(id);
+                return StatusCode((int)result.StatusCode, result.Message);
             }
             return NotFound(id);
         }
@@ -76,13 +78,15 @@ namespace AudioStreamerAPI.Controllers
         [HttpPut("playlist/{id}/add/track/{trackId}")]
         public IActionResult AddTrack(int id, int trackId)
         {
-            return _repo.AddTrack(id, trackId) == OperationalStatus.SUCCESS ? Ok() : NotFound(new object[] { id, trackId });
+            var result = _repo.AddTrack(id, trackId);
+            return StatusCode((int)result.StatusCode, result.Message);
         }
 
         [HttpPut("playlist/{id}/remove/track/{trackId}")]
         public IActionResult Remove(int id, int trackId)
         {
-            return _repo.RemoveTrack(id, trackId) == OperationalStatus.SUCCESS ? Ok() : NotFound(new object[] { id, trackId });
+            var result = _repo.RemoveTrack(id, trackId);
+            return StatusCode((int)result.StatusCode, result.Message);
         }
     }
 }

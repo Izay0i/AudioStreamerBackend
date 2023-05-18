@@ -1,5 +1,4 @@
-﻿using AudioStreamerAPI.Constants;
-using AudioStreamerAPI.DTO;
+﻿using AudioStreamerAPI.DTO;
 using AudioStreamerAPI.Models;
 using AudioStreamerAPI.Repositories;
 using AutoMapper;
@@ -38,32 +37,23 @@ namespace AudioStreamerAPI.Controllers
         public IActionResult AddTrack([FromBody] TrackDTO trackDTO)
         {
             var track = _mapper.Map<Track>(trackDTO);
-            if (_repo.AddTrack(track) == OperationalStatus.SUCCESS)
-            {
-                return Ok(track);
-            }
-            return BadRequest(track);
+            var result = _repo.AddTrack(track);
+            return StatusCode((int)result.StatusCode, result.Message);
         }
 
         [HttpPut]
         public IActionResult UpdateTrackInfo([FromBody] TrackDTO trackDTO)
         {
             var track = _mapper.Map<Track>(trackDTO);
-            if (_repo.UpdateTrack(track) == OperationalStatus.SUCCESS)
-            {
-                return Ok(track);
-            }
-            return NotFound(track.TrackName);
+            var result = _repo.UpdateTrack(track);
+            return StatusCode((int)result.StatusCode, result.Message);
         }
 
         [HttpDelete]
         public IActionResult DeleteTrack(int id)
         {
-            if (_repo.DeleteTrack(id) == OperationalStatus.SUCCESS)
-            {
-                return Ok();
-            }
-            return NotFound(id);
+            var result = _repo.DeleteTrack(id);
+            return StatusCode((int)result.StatusCode, result.Message);
         }
     }
 }

@@ -1,5 +1,5 @@
-﻿using AudioStreamerAPI.Constants;
-using AudioStreamerAPI.Models;
+﻿using AudioStreamerAPI.Models;
+using AudioStreamerAPI.Constants;
 using Microsoft.AspNetCore.Identity;
 
 namespace AudioStreamerAPI.Helpers
@@ -18,9 +18,17 @@ namespace AudioStreamerAPI.Helpers
             var result = hasher.VerifyHashedPassword(null!, password, typedPassword);
             if (result == PasswordVerificationResult.Success)
             {
-                return OperationalStatus.SUCCESS;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Ok,
+                    Message = "Successfully verified password.",
+                };
             }
-            return OperationalStatus.FAILURE;
+            return new OperationalStatus
+            {
+                StatusCode = OperationalStatusEnums.BadRequest,
+                Message = "Failed to verify password.",
+            };
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using AudioStreamerAPI.Models;
 using AudioStreamerAPI.Repositories;
-using AudioStreamerAPI.Constants;
 using Microsoft.AspNetCore.Mvc;
 using AudioStreamerAPI.DTO;
 using AutoMapper;
@@ -49,20 +48,14 @@ namespace AudioStreamerAPI.Controllers
         public IActionResult UpdateMemberInfo([FromBody] MemberDTO memberDTO)
         {
             var member = _mapper.Map<Member>(memberDTO);
-            if (_repo.UpdateMember(member) == OperationalStatus.SUCCESS)
-            {
-                return Ok(member);
-            }
-            return NotFound(new object[] { member.Email, member.Password, "Invalid credentials." });
+            var result = _repo.UpdateMember(member);
+            return StatusCode((int)result.StatusCode, result.Message);
         }
 
         [HttpDelete("delete")]
         public IActionResult DeleteMember(string email) {
-            if (_repo.DeleteMember(email) == OperationalStatus.SUCCESS)
-            {
-                return Ok(email);
-            }
-            return NotFound(email);
+            var result = _repo.DeleteMember(email);
+            return StatusCode((int)result.StatusCode, result.Message);
         }
     }
 }

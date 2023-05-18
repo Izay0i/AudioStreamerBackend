@@ -60,8 +60,8 @@ namespace AudioStreamerAPI.Controllers
         {
             try
             {
-                await MediaHelper.DeleteMediaAsync(url, containerName);
-                return Ok();
+                var result = await MediaHelper.DeleteMediaAsync(url, containerName);
+                return StatusCode((int)result.StatusCode, result.Message);
             }
             catch  (Exception ex) 
             {

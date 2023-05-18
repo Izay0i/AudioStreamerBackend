@@ -1,5 +1,5 @@
-﻿using AudioStreamerAPI.Constants;
-using AudioStreamerAPI.Models;
+﻿using AudioStreamerAPI.Models;
+using AudioStreamerAPI.Constants;
 
 namespace AudioStreamerAPI.DAO
 {
@@ -95,7 +95,11 @@ namespace AudioStreamerAPI.DAO
             Track? trackHasId = GetTrack(track.TrackId);
             if (trackHasId != null)
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Conflict,
+                    Message = $"Track wiht Id: {trackHasId.TrackId} already exists.",
+                };
             }
             else
             {
@@ -114,7 +118,11 @@ namespace AudioStreamerAPI.DAO
 
                     context.Tracks.Add(t);
                     context.SaveChanges();
-                    return OperationalStatus.SUCCESS;
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.Created,
+                        Message = "Successfully added track to user's directory.",
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -156,14 +164,22 @@ namespace AudioStreamerAPI.DAO
                     }
 
                     context.SaveChanges();
-                    return OperationalStatus.SUCCESS;
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.Ok,
+                        Message = "Successfully updated track's info.",
+                    };
                 }
                 catch (Exception ex)
                 {
                     throw new Exception(ex.Message);
                 }
             }
-            return OperationalStatus.FAILURE;
+            return new OperationalStatus
+            {
+                StatusCode = OperationalStatusEnums.NotFound,
+                Message = "Failed to find track.",
+            };
         }
 
         public OperationalStatus DeleteTrack(int id)
@@ -176,14 +192,22 @@ namespace AudioStreamerAPI.DAO
                     var context = new fsnvdezgContext();
                     context.Tracks.Remove(trackHasId);
                     context.SaveChanges();
-                    return OperationalStatus.SUCCESS;
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.Ok,
+                        Message = $"Successfully removed track with Id: {id}.",
+                    };
                 }
                 catch (Exception ex)
                 {
                     throw new Exception(ex.Message);
                 }
             }
-            return OperationalStatus.FAILURE;
+            return new OperationalStatus
+            {
+                StatusCode = OperationalStatusEnums.NotFound,
+                Message = $"Couldn't find track with Id: {id}.",
+            };
         }
     }
 }

@@ -1,10 +1,10 @@
 ﻿using AudioStreamerAPI.Models;
 using AudioStreamerAPI.Repositories;
-using AudioStreamerAPI.Constants;
 using Microsoft.AspNetCore.Mvc;
 using AudioStreamerAPI.Helpers;
 using System.ComponentModel.DataAnnotations;
 using AudioStreamerAPI.DTO;
+using AudioStreamerAPI.Constants;
 
 namespace AudioStreamerAPI.Controllers
 {
@@ -37,14 +37,8 @@ namespace AudioStreamerAPI.Controllers
                 }
                 else
                 {
-                    if (_repo.AddMember(m) == OperationalStatus.SUCCESS)
-                    {
-                        return Ok(credentials.Email);
-                    }
-                    else
-                    {
-                        return BadRequest();
-                    }
+                    var result = _repo.AddMember(m);
+                    return StatusCode((int)result.StatusCode, result.Message);
                 }
             }
             else
@@ -57,33 +51,36 @@ namespace AudioStreamerAPI.Controllers
         public IActionResult Login([FromBody] CredentialsDTO credentials)
         {
             var member = _repo.GetMember(credentials.Email);
-            if (member != null && 
-                CredentialsHelper.VerifyPassword(member.Password, credentials.Password) == OperationalStatus.SUCCESS)
+            if (member != null)
             {
-                return Ok();
+                var result = CredentialsHelper.VerifyPassword(member.Password, credentials.Password);
+                return StatusCode((int)result.StatusCode, result.Message);
             }
-            return NotFound();
+            return BadRequest(credentials.Email);
         }
 
         [HttpPost("change")]
         public IActionResult ChangePassword([FromBody] CredentialsDTO credentials, [MinLength(14)] string newPassword)
         {
             var member = _repo.GetMember(credentials.Email);
-            if (member != null &&
-                CredentialsHelper.VerifyPassword(member.Password, credentials.Password) == OperationalStatus.SUCCESS)
+            if (member != null)
             {
-                try
+                var result = CredentialsHelper.VerifyPassword(member.Password, credentials.Password);
+                if (result.StatusCode == OperationalStatusEnums.Ok)
                 {
-                    var context = new fsnvdezgContext();
-                    context.Members.Attach(member);
-                    member.Password = CredentialsHelper.HashPassword(newPassword);
-                    context.SaveChanges();
-                    return Ok(member.Password);
+                    try
+                    {
+                        var context = new fsnvdezgContext();
+                        context.Members.Attach(member);
+                        member.Password = CredentialsHelper.HashPassword(newPassword);
+                        context.SaveChanges();
+                    }
+                    catch (Exception ex)
+                    {
+                        return BadRequest(ex.Message);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    return BadRequest(ex.Message);
-                }
+                return StatusCode((int)result.StatusCode, result.Message);
             }
             return Conflict(new object[] { credentials.Password, newPassword });
         }

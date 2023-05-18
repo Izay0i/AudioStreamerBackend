@@ -1,5 +1,5 @@
-﻿using AudioStreamerAPI.Constants;
-using AudioStreamerAPI.Models;
+﻿using AudioStreamerAPI.Models;
+using AudioStreamerAPI.Constants;
 
 namespace AudioStreamerAPI.DAO
 {
@@ -54,12 +54,20 @@ namespace AudioStreamerAPI.DAO
 
             if (member == null || followingMember == null)
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus 
+                { 
+                    StatusCode = OperationalStatusEnums.NotFound,
+                    Message = $"Neither userId: {id} nor followingId: {followingId} could be found."
+                };
             }
 
             if (member.FollowingIds!.Contains(followingId))
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Conflict,
+                    Message = $"Already following user: {followingMember.DisplayName}.",
+                };
             }
 
             if (member.FollowingIds!.Length == 0)
@@ -76,11 +84,20 @@ namespace AudioStreamerAPI.DAO
                 followings.CopyTo(member.FollowingIds, 0);
             }
 
-            if (MemberDAO.Instance.UpdateMember(member) == OperationalStatus.SUCCESS)
+            var result = MemberDAO.Instance.UpdateMember(member);
+            if (result.StatusCode == OperationalStatusEnums.Ok)
             {
-                return OperationalStatus.SUCCESS;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Ok,
+                    Message = $"Successfully added user with Id: {followingId} to list.",
+                };
             }
-            return OperationalStatus.FAILURE;
+            return new OperationalStatus
+            {
+                StatusCode = OperationalStatusEnums.NotFound,
+                Message = $"Failed to add user with Id: {followingId} to list.",
+            };
         }
 
         public OperationalStatus UnfollowMember(int id, int followingId)
@@ -91,12 +108,20 @@ namespace AudioStreamerAPI.DAO
 
             if (member == null || followingMember == null)
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.NotFound,
+                    Message = $"Neither userId: {id} nor followingId: {followingId} can be found."
+                };
             }
 
             if (member.FollowingIds!.Length == 0)
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.NotFound,
+                    Message = $"User isn't following anyone.",
+                };
             }
             else
             {
@@ -108,11 +133,20 @@ namespace AudioStreamerAPI.DAO
                 followings.CopyTo(member.FollowingIds, 0);
             }
 
-            if (MemberDAO.Instance.UpdateMember(member) == OperationalStatus.SUCCESS)
+            var result = MemberDAO.Instance.UpdateMember(member);
+            if (result.StatusCode == OperationalStatusEnums.Ok)
             {
-                return OperationalStatus.SUCCESS;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Ok,
+                    Message = $"Successfully removed user with Id: {followingId} from list.",
+                };
             }
-            return OperationalStatus.FAILURE;
+            return new OperationalStatus
+            {
+                StatusCode = OperationalStatusEnums.NotFound,
+                Message = $"Failed to remove user with Id: {followingId} from list.",
+            };
         }
     }
 }

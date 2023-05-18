@@ -57,11 +57,19 @@ namespace AudioStreamerAPI.Helpers
                 BlobContainerClient client = new(connectionString, containerName);
                 await client.GetBlobClient(url).DeleteAsync();
 
-                return OperationalStatus.SUCCESS;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.NoContent,
+                    Message = $"Successfully deleted media inside container: {containerName}",
+                };
             }
             catch
             {
-                return OperationalStatus.FAILURE;
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.NotFound,
+                    Message = $"Failed to find: {url} inside container: {containerName}",
+                };
             }
         }
     }

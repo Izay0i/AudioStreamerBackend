@@ -12,7 +12,7 @@ namespace AudioStreamerAPI.DTO
         [MinLength(LengthConstants.MIN_NAME_LENGTH), MaxLength(LengthConstants.MAX_NAME_LENGTH)]
         public string TrackName { get; set; } = null!;
         [Required]
-        public string ArtistName { get; set; }
+        public string ArtistName { get; set; } = null!;
         [MaxLength(LengthConstants.MAX_NAME_LENGTH)]
         public string Description { get; set; } = null!;
         public string Url { get; set; } = null!;
