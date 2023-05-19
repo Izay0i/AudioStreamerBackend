@@ -3,7 +3,6 @@ using AudioStreamerAPI.Helpers;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Net.Http.Headers;
 
 namespace AudioStreamerAPI.Controllers
 {
@@ -44,28 +43,14 @@ namespace AudioStreamerAPI.Controllers
             return File(stream, contentType, true);
         }
 
-        [HttpGet("stream")]
-        public async Task<IActionResult> GetMediaStream(string src, string contentType)
-        {
-            var client = _httpClientFactory.CreateClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, src);
-            var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-            var stream = await response.Content.ReadAsStreamAsync();
-            //vvv This guy right here doesn't support seeking
-            //Why isn't it possible
-            //It's just not
-            //Why not you stupid bast*rd
-            return File(stream, contentType, true);
-        }
-
         [RequestSizeLimit(AzureConstants.MAX_FILE_SIZE)]
         [RequestFormLimits(MultipartBodyLengthLimit = AzureConstants.MAX_FILE_SIZE)]
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadMedia(int id, IFormFile file, string containerName)
+        public async Task<IActionResult> UploadChunksAsync(int id, IFormFile file, string containerName)
         {
             try
             {
-                var uri = await MediaHelper.UploadMediaAsync(id, file, containerName);
+                var uri = await MediaHelper.UploadChunksAsync(id, file, containerName);
                 return Ok(uri);
             }
             catch (Exception ex)

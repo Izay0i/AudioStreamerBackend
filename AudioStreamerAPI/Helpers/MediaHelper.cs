@@ -1,43 +1,64 @@
 ﻿using AudioStreamerAPI.Constants;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
+using System.Text;
 
 namespace AudioStreamerAPI.Helpers
 {
     public class MediaHelper
     {
-        public static async Task<string> UploadMediaAsync(int id, IFormFile file, string containerName)
+        public static async Task<string> UploadChunksAsync(int id, IFormFile file, string containerName)
         {
+            var fName = FileHelper.GenerateFileName(file.FileName, id.ToString());
+
+            //Temporarily saving file to disk
+            var tempFileName = Path.GetTempFileName();
+            using (var stream = File.Create(tempFileName)) 
+            { 
+                await file.CopyToAsync(stream);
+            }
+
+            var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+            var connectionString = config.GetSection("Azure")["URL"];
+
+            BlobContainerClient blobContainerClient = new(connectionString, containerName);
             try
             {
-                var fName = FileHelper.GenerateFileName(file.FileName, id.ToString());
-                var fileUri = string.Empty;
+                var blockBlobClient = blobContainerClient.GetBlockBlobClient(fName);
 
-                var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-                var connectionString = config.GetSection("Azure")["URL"];
+                long blockSize = 1 * 1024 * 1024;
+                int offset = 0;
+                int counter = 0;
 
-                BlobContainerClient client = new(connectionString, containerName);
-                try
+                List<string> blockIds = new();
+
+                using (var fs = File.OpenRead(tempFileName))
                 {
-                    //B.L.O.B!! Do something!
-                    BlobClient blob = client.GetBlobClient(fName);
-                    using (Stream stream = file.OpenReadStream())
+                    var bytesRemaining = fs.Length;
+                    do
                     {
-                        await blob.UploadAsync(stream, options: new()
+                        var dataToRead = Math.Min(bytesRemaining, blockSize);
+                        byte[] data = new byte[dataToRead];
+                        var dataRead = fs.Read(data, offset, (int)dataToRead);
+                        bytesRemaining -= dataRead;
+
+                        if (dataRead > 0)
                         {
-                            TransferOptions = new()
-                            {
-                                MaximumTransferSize = AzureConstants.MAX_FILE_SIZE,
-                            }
-                        });
+                            var blockId = Convert.ToBase64String(Encoding.UTF8.GetBytes(counter.ToString("D6")));
+                            await blockBlobClient.StageBlockAsync(blockId, new MemoryStream(data));
+
+                            //Console.WriteLine(string.Format("Block {0} uploaded successfully.", counter.ToString("d6")));
+
+                            blockIds.Add(blockId);
+                            counter++;
+                        }
                     }
-                    fileUri = blob.Uri.AbsoluteUri;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
+                    while (bytesRemaining > 0);
+
+                    await blockBlobClient.CommitBlockListAsync(blockIds);
                 }
 
-                return fileUri;
+                return blockBlobClient.Uri.AbsoluteUri;
             }
             catch (Exception ex)
             {
