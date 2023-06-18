@@ -1,4 +1,5 @@
-﻿using AudioStreamerAPI.Constants;
+﻿using AudioStreamerAPI.Attributes;
+using AudioStreamerAPI.Constants;
 using AudioStreamerAPI.Helpers;
 using Azure.Storage;
 using Azure.Storage.Blobs;
@@ -10,13 +11,6 @@ namespace AudioStreamerAPI.Controllers
     [Route("api/[controller]")]
     public class MediaController : ControllerBase
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public MediaController(IHttpClientFactory httpClientFactory)
-        {
-            _httpClientFactory = httpClientFactory;
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetMedia(string src, string containerName, string contentType)
         {
@@ -46,16 +40,27 @@ namespace AudioStreamerAPI.Controllers
         [RequestSizeLimit(AzureConstants.MAX_FILE_SIZE)]
         [RequestFormLimits(MultipartBodyLengthLimit = AzureConstants.MAX_FILE_SIZE)]
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadChunksAsync(int id, IFormFile file, string containerName)
+        public async Task<IActionResult> UploadChunksAsync(
+            int id, 
+            [AllowedExtensions(new string[] { ".ogg", ".mp3", ".wav", ".jpeg", ".jpg", ".png", ".gif" })] IFormFile file, 
+            string containerName)
         {
             try
             {
                 var uri = await MediaHelper.UploadChunksAsync(id, file, containerName);
-                return Ok(uri);
+                return Ok(new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Ok,
+                    Objects = new object[] { uri },
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.BadRequest,
+                    Message = ex.Message,
+                });
             }
         }
 
@@ -65,11 +70,15 @@ namespace AudioStreamerAPI.Controllers
             try
             {
                 var result = await MediaHelper.DeleteMediaAsync(url, containerName);
-                return StatusCode((int)result.StatusCode, result.Message);
+                return StatusCode((int)result.StatusCode, result);
             }
             catch  (Exception ex) 
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.BadRequest,
+                    Message = ex.Message,
+                });
             }
         }
     }

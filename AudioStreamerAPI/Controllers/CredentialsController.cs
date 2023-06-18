@@ -38,12 +38,16 @@ namespace AudioStreamerAPI.Controllers
                 else
                 {
                     var result = _repo.AddMember(m);
-                    return StatusCode((int)result.StatusCode, result.Message);
+                    return StatusCode((int)result.StatusCode, result);
                 }
             }
             else
             {
-                return Conflict(credentials.Email);
+                return Conflict(new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Conflict,
+                    Message = "User has already registered.",
+                });
             }
         }
 
@@ -54,7 +58,15 @@ namespace AudioStreamerAPI.Controllers
             if (member != null)
             {
                 var result = CredentialsHelper.VerifyPassword(member.Password, credentials.Password);
-                return StatusCode((int)result.StatusCode, result.Message);
+                return StatusCode((int)result.StatusCode, result.StatusCode == OperationalStatusEnums.Ok ? new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Ok,
+                    Objects = new object[] { member.MemberId },
+                } : new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.NotFound,
+                    Message = "User not found.",
+                });
             }
             return BadRequest(credentials.Email);
         }
@@ -80,9 +92,13 @@ namespace AudioStreamerAPI.Controllers
                         return BadRequest(ex.Message);
                     }
                 }
-                return StatusCode((int)result.StatusCode, result.Message);
+                return StatusCode((int)result.StatusCode, result);
             }
-            return Conflict(new object[] { credentials.Password, newPassword });
+            return NotFound(new OperationalStatus
+            {
+                StatusCode = OperationalStatusEnums.NotFound,
+                Message = "User not found.",
+            });
         }
     }
 }

@@ -15,10 +15,8 @@ namespace AudioStreamerAPI.DAO
             {
                 lock (_instanceLock)
                 {
-                    if (_instance == null)
-                    {
-                        _instance = new();
-                    }
+                    //SURRENDER TO MY WILL
+                    _instance ??= new();
                     return _instance;
                 }
             }
@@ -110,15 +108,18 @@ namespace AudioStreamerAPI.DAO
                         Password = CredentialsHelper.HashPassword(member.Password),
                         Token = string.Empty,
                         DisplayName = member.DisplayName,
-                        NameTag = member.DisplayName.ToLower().Trim().Replace(" ", ""),
+                        NameTag = member.DisplayName.ToLower().Trim().Replace(" ", "_"),
                     };
 
                     context.Members.Add(m);
                     context.SaveChanges();
+
+                    var memberId = GetMember(m.Email)!.MemberId;
                     return new OperationalStatus
                     {
                         StatusCode = OperationalStatusEnums.Created,
                         Message = $"Successfully registered member with {m.Email}.",
+                        Objects = new object[] { memberId },
                     };
                 }
                 catch (Exception ex)

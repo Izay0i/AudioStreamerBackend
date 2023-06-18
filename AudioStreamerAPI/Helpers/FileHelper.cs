@@ -1,10 +1,12 @@
-﻿namespace AudioStreamerAPI.Helpers
+﻿using System.Text.RegularExpressions;
+
+namespace AudioStreamerAPI.Helpers
 {
     public class FileHelper
     {
         public static string SanitizeFileName(string fileName)
         {
-            fileName = fileName.Replace(" ", "_");
+            fileName = Regex.Replace(fileName, $"[\\(/\\) ]+", "_");
             return string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
         }
 

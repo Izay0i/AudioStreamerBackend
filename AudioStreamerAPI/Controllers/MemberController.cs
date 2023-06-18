@@ -29,7 +29,7 @@ namespace AudioStreamerAPI.Controllers
         [HttpGet("search/{keyword}")]
         public async Task<ActionResult<IEnumerable<MemberDTO>>> SearchMembers(string keyword)
         {
-            var members = _mapper.Map<IEnumerable<MemberDTO>>(_repo.GetMembers());
+            var members = _mapper.Map<IEnumerable<MemberDTO>>(_repo.SearchMembers(keyword));
             return await Task.FromResult(members.ToList());
         }
 
@@ -37,25 +37,36 @@ namespace AudioStreamerAPI.Controllers
         public IActionResult GetMember(int id)
         {
             MemberDTO? memberDTO = _mapper.Map<MemberDTO>(_repo.GetMember(id));
-            if (memberDTO != null)
+            var result = memberDTO != null ? new OperationalStatus
+            {
+                StatusCode = Constants.OperationalStatusEnums.Ok,
+                Message = $"Found user with id: {id}.",
+                Objects = new object[] { memberDTO },
+            } : new OperationalStatus
+            {
+                StatusCode = Constants.OperationalStatusEnums.NotFound,
+                Message = $"User with id: {id} not found.",
+            };
+            /*if (memberDTO != null)
             {
                 return Ok(memberDTO);
             }
-            return NotFound(id);
+            return NotFound(id);*/
+            return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpPut("update")]
+        [HttpPatch("update")]
         public IActionResult UpdateMemberInfo([FromBody] MemberDTO memberDTO)
         {
             var member = _mapper.Map<Member>(memberDTO);
             var result = _repo.UpdateMember(member);
-            return StatusCode((int)result.StatusCode, result.Message);
+            return StatusCode((int)result.StatusCode, result);
         }
 
         [HttpDelete("delete")]
         public IActionResult DeleteMember(string email) {
             var result = _repo.DeleteMember(email);
-            return StatusCode((int)result.StatusCode, result.Message);
+            return StatusCode((int)result.StatusCode, result);
         }
     }
 }

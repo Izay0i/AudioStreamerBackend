@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using AudioStreamerAPI.DTO;
 using AudioStreamerAPI.Constants;
 using AutoMapper;
-using System.Net;
 
 namespace AudioStreamerAPI.Controllers
 {
@@ -31,14 +30,14 @@ namespace AudioStreamerAPI.Controllers
         public IActionResult FollowMember(int id, int followingId)
         {
             var result = _repo.FollowMember(id, followingId);
-            return StatusCode((int)result.StatusCode, result.Message);
+            return StatusCode((int)result.StatusCode, result);
         }
 
         [HttpDelete("user/{id}/unfollow/{followingId}")]
         public IActionResult UnfollowMember(int id, int followingId)
         {
             var result = _repo.UnfollowMember(id, followingId);
-            return StatusCode((int)result.StatusCode, result.Message);
+            return StatusCode((int)result.StatusCode, result);
         }
     }
 }

@@ -15,5 +15,6 @@ namespace AudioStreamerAPI.DTO
         public string NameTag { get; set; } = null!;
         public string Biography { get; set; } = null!;
         public string Avatar { get; set; } = null!;
+        public DateTime DateCreated { get; set; }
     }
 }

@@ -14,9 +14,22 @@ builder.Services.AddControllers(
 
 builder.Services.AddDbContext<fsnvdezgContext>(opt => opt.UseNpgsql(ConnStr.Get()));
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
+builder.Services.AddScoped<IMemberstatsRepository, MemberstatsRepository>();
 builder.Services.AddScoped<IFollowerRepository, FollowerRepository>();
 builder.Services.AddScoped<ITrackRepository, TrackRepository>();
 builder.Services.AddScoped<IPlaylistRepository, PlaylistRepository>();
+builder.Services.AddScoped<ICaptionRepository, CaptionRepository>();
+
+builder.Services.AddCors(options => options.AddPolicy("ApiCorsPolicy", 
+    policy =>
+    {
+        policy.WithOrigins("http://localhost:5173",
+                            "https://audiostreamerweb.azurewebsites.net")
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .SetIsOriginAllowed(origin => true);
+    })
+);
 
 builder.Services.AddHttpClient();
 
@@ -44,6 +57,8 @@ else
 {
     app.UseSwaggerUI();
 }
+
+app.UseCors("ApiCorsPolicy");
 
 app.UseHttpsRedirection();
 

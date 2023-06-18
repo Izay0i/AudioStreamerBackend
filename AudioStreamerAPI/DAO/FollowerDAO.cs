@@ -14,10 +14,7 @@ namespace AudioStreamerAPI.DAO
             {
                 lock (_instanceLock)
                 {
-                    if (_instance == null)
-                    {
-                        _instance = new();
-                    }
+                    _instance ??= new();
                     return _instance;
                 }
             }
@@ -91,6 +88,7 @@ namespace AudioStreamerAPI.DAO
                 {
                     StatusCode = OperationalStatusEnums.Ok,
                     Message = $"Successfully added user with Id: {followingId} to list.",
+                    Objects = new object[] { member.FollowingIds },
                 };
             }
             return new OperationalStatus
@@ -140,6 +138,7 @@ namespace AudioStreamerAPI.DAO
                 {
                     StatusCode = OperationalStatusEnums.Ok,
                     Message = $"Successfully removed user with Id: {followingId} from list.",
+                    Objects = new object[] { member.FollowingIds },
                 };
             }
             return new OperationalStatus

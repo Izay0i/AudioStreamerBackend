@@ -1,5 +1,6 @@
 ﻿using AudioStreamerAPI.Models;
 using AudioStreamerAPI.Constants;
+using Microsoft.AspNetCore.Identity;
 
 namespace AudioStreamerAPI.DAO
 {
@@ -14,10 +15,7 @@ namespace AudioStreamerAPI.DAO
             {
                 lock (_instanceLock)
                 {
-                    if (_instance == null)
-                    {
-                        _instance = new();
-                    }
+                    _instance ??= new();
                     return _instance;
                 }
             }
@@ -25,7 +23,7 @@ namespace AudioStreamerAPI.DAO
 
         public IEnumerable<Playlist> GetPlaylists()
         {
-            List<Playlist>? playlists;
+            IEnumerable<Playlist>? playlists;
             try
             {
                 var context = new fsnvdezgContext();
@@ -40,7 +38,7 @@ namespace AudioStreamerAPI.DAO
 
         public IEnumerable<Playlist> GetPlaylistsFromUser(int id)
         {
-            List<Playlist>? playlists;
+            IEnumerable<Playlist>? playlists;
             try
             {
                 var context = new fsnvdezgContext();
@@ -73,7 +71,7 @@ namespace AudioStreamerAPI.DAO
 
         public IEnumerable<Playlist> SearchPlaylists(string name)
         {
-            List<Playlist>? playlists;
+            IEnumerable<Playlist>? playlists;
             try
             {
                 var context = new fsnvdezgContext();
@@ -101,13 +99,43 @@ namespace AudioStreamerAPI.DAO
             return playlist;
         }
 
-        public Playlist? GetPlaylist(string name)
+        public Playlist? GetPlaylistFromUser(int userId, int playlistId)
         {
             Playlist? playlist;
             try
             {
                 var context = new fsnvdezgContext();
-                playlist = context.Playlists.FirstOrDefault(p => p.Name.Equals(name.Trim()));
+                playlist = context.Playlists.FirstOrDefault(p => p.MemberId == userId && p.PlaylistId == playlistId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            return playlist;
+        }
+
+        public Playlist? GetPlaylistFromUser(int userId, string name)
+        {
+            Playlist? playlist;
+            try
+            {
+                var context = new fsnvdezgContext();
+                playlist = context.Playlists.FirstOrDefault(p => p.MemberId == userId && p.Name.Equals(name.Trim()));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            return playlist;
+        }
+
+        public IEnumerable<Playlist> GetPlaylists(string name)
+        {
+            IEnumerable<Playlist>? playlist;
+            try
+            {
+                var context = new fsnvdezgContext();
+                playlist = context.Playlists.Where(p => p.Name.Equals(name.Trim())).ToList();
             }
             catch (Exception ex)
             {
@@ -118,32 +146,24 @@ namespace AudioStreamerAPI.DAO
 
         public OperationalStatus AddPlaylist(Playlist playlist)
         {
-            Playlist? playlistHasId = GetPlaylist(playlist.PlaylistId);
-            if (playlistHasId != null)
-            {
-                return new OperationalStatus
-                {
-                    StatusCode = OperationalStatusEnums.Conflict,
-                    Message = "Playlist already exists.",
-                };
-            }
-            else
+            Playlist? playlistHasId = GetPlaylistFromUser(playlist.MemberId, playlist.Name);
+            if (playlistHasId == null)
             {
                 try
                 {
                     var context = new fsnvdezgContext();
-                    Playlist p = new()
+                    /*Playlist p = new()
                     {
                         MemberId = playlist.MemberId,
                         Name = playlist.Name,
                         Description = playlist.Description,
                         TracksIds = playlist.TracksIds,
-                    };
+                    };*/
 
-                    context.Playlists.Add(p);
+                    context.Playlists.Add(playlist);
                     context.SaveChanges();
-                    return new OperationalStatus 
-                    { 
+                    return new OperationalStatus
+                    {
                         StatusCode = OperationalStatusEnums.Created,
                         Message = "Successfully added playlist to user's directory.",
                     };
@@ -153,6 +173,11 @@ namespace AudioStreamerAPI.DAO
                     throw new Exception(ex.Message);
                 }
             }
+            return new OperationalStatus
+            {
+                StatusCode = OperationalStatusEnums.Conflict,
+                Message = "Playlist already exists.",
+            };
         }
 
         public OperationalStatus UpdatePlaylist(Playlist playlist)
@@ -194,14 +219,11 @@ namespace AudioStreamerAPI.DAO
                     throw new Exception(ex.Message);
                 }
             }
-            else
+            return new OperationalStatus
             {
-                return new OperationalStatus
-                {
-                    StatusCode = OperationalStatusEnums.NotFound,
-                    Message = $"Couldn't find playlist with Id: {playlist.PlaylistId}.",
-                };
-            }
+                StatusCode = OperationalStatusEnums.NotFound,
+                Message = $"Couldn't find playlist with Id: {playlist.PlaylistId}.",
+            };
         }
 
         public OperationalStatus DeletePlaylist(int id)
@@ -225,14 +247,11 @@ namespace AudioStreamerAPI.DAO
                     throw new Exception(ex.Message);
                 }
             }
-            else
+            return new OperationalStatus
             {
-                return new OperationalStatus
-                {
-                    StatusCode = OperationalStatusEnums.NotFound,
-                    Message = $"Couldn't find playlist with Id: {id}.",
-                };
-            }
+                StatusCode = OperationalStatusEnums.NotFound,
+                Message = $"Couldn't find playlist with Id: {id}.",
+            };
         }
 
         public OperationalStatus AddTrack(int id, int trackId)

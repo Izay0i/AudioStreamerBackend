@@ -26,7 +26,7 @@ namespace AudioStreamerAPI.Helpers
             {
                 var blockBlobClient = blobContainerClient.GetBlockBlobClient(fName);
 
-                long blockSize = 1 * 1024 * 1024;
+                long blockSize = AzureConstants.MAX_TRANSFER_SIZE;
                 int offset = 0;
                 int counter = 0;
 

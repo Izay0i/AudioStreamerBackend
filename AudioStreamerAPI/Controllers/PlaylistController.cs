@@ -47,46 +47,77 @@ namespace AudioStreamerAPI.Controllers
             return await Task.FromResult(playlists.ToList());
         }
 
+        [HttpGet("user/{uId}/playlist/{pId}")]
+        public IActionResult GetPlaylistFromUser(int uId, int pId)
+        {
+            PlaylistDTO? playlistDTO = _mapper.Map<PlaylistDTO>(_repo.GetPlaylistFromUser(uId, pId));
+            var result = playlistDTO != null ? new OperationalStatus
+            {
+                //I don't believe in consistency
+                StatusCode = Constants.OperationalStatusEnums.Ok,
+                Message = $"Found playlist with id: {pId}.",
+                Objects = new object[] { playlistDTO }
+            } : new OperationalStatus
+            {
+                StatusCode = Constants.OperationalStatusEnums.NotFound,
+                Message = "Playlist not found.",
+            };
+            return StatusCode((int)result.StatusCode, result);
+        }
+
+        [HttpGet("user/{uId}/playlist/name/{name}")]
+        public IActionResult GetPlaylistFromUser(int uId, string name)
+        {
+            PlaylistDTO? playlistDTO = _mapper.Map<PlaylistDTO>(_repo.GetPlaylistFromUser(uId, name));
+            var result = playlistDTO != null ? new OperationalStatus
+            {
+                //I don't believe in inconsistency
+                StatusCode = Constants.OperationalStatusEnums.Ok,
+                Message = $"Found playlist with name: {name}.",
+                Objects = new object[] { playlistDTO }
+            } : new OperationalStatus
+            {
+                StatusCode = Constants.OperationalStatusEnums.NotFound,
+                Message = "Playlist not found.",
+            };
+            return StatusCode((int)result.StatusCode, result);
+        }
+
         [HttpPost]
         public IActionResult AddPlaylist([FromBody] PlaylistDTO playlistDTO)
         {
             var playlist = _mapper.Map<Playlist>(playlistDTO);
             var result = _repo.AddPlaylist(playlist);
-            return StatusCode((int)result.StatusCode, result.Message);
+            return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpPut]
+        [HttpPatch]
         public IActionResult UpdatePlaylist([FromBody] PlaylistDTO playlistDTO)
         {
             var playlist = _mapper.Map<Playlist>(playlistDTO);
             var result = _repo.UpdatePlaylist(playlist);
-            return StatusCode((int)result.StatusCode, result.Message);
+            return StatusCode((int)result.StatusCode, result);
         }
 
         [HttpDelete]
         public IActionResult DeletePlaylist(int id)
         {
-            Playlist? playlist = _repo.GetPlaylist(id);
-            if (playlist != null)
-            {
-                var result = _repo.DeletePlaylist(id);
-                return StatusCode((int)result.StatusCode, result.Message);
-            }
-            return NotFound(id);
+            var result = _repo.DeletePlaylist(id);
+            return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpPut("playlist/{id}/add/track/{trackId}")]
-        public IActionResult AddTrack(int id, int trackId)
+        [HttpPatch("playlist/{id}/add/track/{trackId}")]
+        public IActionResult AddTrackToPlaylist(int id, int trackId)
         {
             var result = _repo.AddTrack(id, trackId);
-            return StatusCode((int)result.StatusCode, result.Message);
+            return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpPut("playlist/{id}/remove/track/{trackId}")]
-        public IActionResult Remove(int id, int trackId)
+        [HttpPatch("playlist/{id}/remove/track/{trackId}")]
+        public IActionResult RemoveTrackFromPlaylist(int id, int trackId)
         {
             var result = _repo.RemoveTrack(id, trackId);
-            return StatusCode((int)result.StatusCode, result.Message);
+            return StatusCode((int)result.StatusCode, result);
         }
     }
 }
