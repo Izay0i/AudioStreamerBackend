@@ -33,7 +33,14 @@ namespace AudioStreamerAPI.Controllers
             return await Task.FromResult(playlists.ToList());
         }
 
-        [HttpGet("user/playlist/{id}")]
+        [HttpGet("user/{uId}/playlists/{name}")]
+        public async Task<ActionResult<IEnumerable<PlaylistDTO>>> GetPlaylistsFromUser(int uId, string name)
+        {
+            var playlists = _mapper.Map<IEnumerable<PlaylistDTO>>(_repo.GetPlaylistsFromUser(uId, name));
+            return await Task.FromResult(playlists.ToList());
+        }
+
+        [HttpGet("tracks/{id}")]
         public async Task<ActionResult<IEnumerable<TrackDTO>>> GetTracksFromPlaylist(int id)
         {
             var tracks = _mapper.Map<IEnumerable<TrackDTO>>(_repo.GetTracksFromPlaylist(id));
@@ -47,10 +54,10 @@ namespace AudioStreamerAPI.Controllers
             return await Task.FromResult(playlists.ToList());
         }
 
-        [HttpGet("user/{uId}/playlist/{pId}")]
-        public IActionResult GetPlaylistFromUser(int uId, int pId)
+        [HttpGet("user/{uId}/playlist/id/{pId}")]
+        public IActionResult GetPlaylistByIdFromUser(int uId, int pId)
         {
-            PlaylistDTO? playlistDTO = _mapper.Map<PlaylistDTO>(_repo.GetPlaylistFromUser(uId, pId));
+            PlaylistDTO? playlistDTO = _mapper.Map<PlaylistDTO>(_repo.GetPlaylistByIdFromUser(uId, pId));
             var result = playlistDTO != null ? new OperationalStatus
             {
                 //I don't believe in consistency
@@ -66,12 +73,12 @@ namespace AudioStreamerAPI.Controllers
         }
 
         [HttpGet("user/{uId}/playlist/name/{name}")]
-        public IActionResult GetPlaylistFromUser(int uId, string name)
+        public IActionResult GetPlaylistByNameFromUser(int uId, string name)
         {
-            PlaylistDTO? playlistDTO = _mapper.Map<PlaylistDTO>(_repo.GetPlaylistFromUser(uId, name));
+            PlaylistDTO? playlistDTO = _mapper.Map<PlaylistDTO>(_repo.GetPlaylistByNameFromUser(uId, name));
             var result = playlistDTO != null ? new OperationalStatus
             {
-                //I don't believe in inconsistency
+                //I don't believe in consistency
                 StatusCode = Constants.OperationalStatusEnums.Ok,
                 Message = $"Found playlist with name: {name}.",
                 Objects = new object[] { playlistDTO }
@@ -106,14 +113,14 @@ namespace AudioStreamerAPI.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpPatch("playlist/{id}/add/track/{trackId}")]
+        [HttpPatch("{id}/add/track/{trackId}")]
         public IActionResult AddTrackToPlaylist(int id, int trackId)
         {
             var result = _repo.AddTrack(id, trackId);
             return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpPatch("playlist/{id}/remove/track/{trackId}")]
+        [HttpPatch("{id}/remove/track/{trackId}")]
         public IActionResult RemoveTrackFromPlaylist(int id, int trackId)
         {
             var result = _repo.RemoveTrack(id, trackId);

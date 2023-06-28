@@ -14,8 +14,8 @@ namespace AudioStreamerAPI.DTO
         [MinLength(LengthConstants.MIN_NAME_LENGTH), MaxLength(LengthConstants.MAX_NAME_LENGTH)]
         public string TrackName { get; set; } = null!;
         [Required]
+        [MinLength(LengthConstants.MIN_NAME_LENGTH), MaxLength(LengthConstants.MAX_NAME_LENGTH)]
         public string ArtistName { get; set; } = null!;
-        [MaxLength(LengthConstants.MAX_NAME_LENGTH)]
         public string Description { get; set; } = null!;
         public string Url { get; set; } = null!;
         public string Thumbnail { get; set; } = null!;
@@ -23,7 +23,6 @@ namespace AudioStreamerAPI.DTO
         public string[]? Tags { get; set; }
         [DefaultValue(0)]
         public int ViewCountsPerDay { get; set; }
-
         public DateTime DateCreated { get; set; }
     }
 }

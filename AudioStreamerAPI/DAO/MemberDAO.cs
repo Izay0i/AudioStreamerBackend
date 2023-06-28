@@ -28,7 +28,7 @@ namespace AudioStreamerAPI.DAO
             try
             {
                 var context = new fsnvdezgContext();
-                members = context.Members.ToList();
+                members = context.Members.OrderBy(m => m.MemberId).ToList();
             }
             catch (Exception ex)
             {
@@ -47,7 +47,7 @@ namespace AudioStreamerAPI.DAO
                 filteredMembers.AddRange(context.Members.Where(m => m.DisplayName.Contains(keyword.Trim())).ToList());
                 filteredMembers.AddRange(context.Members.Where(m => m.NameTag.Contains(keyword.Trim())).ToList());
 
-                members = filteredMembers.Distinct().ToList();
+                members = filteredMembers.Distinct().OrderBy(m => m.MemberId).ToList();
             }
             catch (Exception ex)
             {
@@ -113,18 +113,21 @@ namespace AudioStreamerAPI.DAO
 
                     context.Members.Add(m);
                     context.SaveChanges();
-
-                    var memberId = GetMember(m.Email)!.MemberId;
+                    
                     return new OperationalStatus
                     {
                         StatusCode = OperationalStatusEnums.Created,
                         Message = $"Successfully registered member with {m.Email}.",
-                        Objects = new object[] { memberId },
+                        Objects = new object[] { m.MemberId },
                     };
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
             }
         }
@@ -170,7 +173,11 @@ namespace AudioStreamerAPI.DAO
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
             }
             else

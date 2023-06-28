@@ -5,7 +5,9 @@ VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioStreamerAPI", "AudioStreamerAPI\AudioStreamerAPI.csproj", "{6DE5CE17-9857-49B2-BD9A-50652AC828C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecommendationSystem", "RecommendationSystem\RecommendationSystem.csproj", "{96C982FF-F1D2-4E52-9AF0-378CEE6D746D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecommendationSystem", "RecommendationSystem\RecommendationSystem.csproj", "{96C982FF-F1D2-4E52-9AF0-378CEE6D746D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioStreamerWebJobs", "AudioStreamerWebJobs\AudioStreamerWebJobs.csproj", "{D02D7390-FD16-4BE7-92FF-167E0F8D02D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{96C982FF-F1D2-4E52-9AF0-378CEE6D746D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96C982FF-F1D2-4E52-9AF0-378CEE6D746D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96C982FF-F1D2-4E52-9AF0-378CEE6D746D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D02D7390-FD16-4BE7-92FF-167E0F8D02D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D02D7390-FD16-4BE7-92FF-167E0F8D02D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D02D7390-FD16-4BE7-92FF-167E0F8D02D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D02D7390-FD16-4BE7-92FF-167E0F8D02D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

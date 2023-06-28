@@ -44,6 +44,24 @@ namespace AudioStreamerAPI.DAO
             return followings;
         }
 
+        public IEnumerable<int> GetFollowingIdsFromUser(int id)
+        {
+            List<int> followings = new();
+            try
+            {
+                var member = MemberDAO.Instance.GetMember(id);
+                if (member != null)
+                {
+                    followings = member.FollowingIds!.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            return followings;
+        }
+
         public OperationalStatus FollowMember(int id, int followingId)
         {
             var member = MemberDAO.Instance.GetMember(id);

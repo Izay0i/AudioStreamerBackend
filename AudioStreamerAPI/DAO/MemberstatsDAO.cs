@@ -1,4 +1,5 @@
-﻿using AudioStreamerAPI.Models;
+﻿using AudioStreamerAPI.Constants;
+using AudioStreamerAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AudioStreamerAPI.DAO
@@ -33,7 +34,11 @@ namespace AudioStreamerAPI.DAO
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.BadRequest,
+                    Message = ex.Message,
+                };
             }
 
             return new OperationalStatus
@@ -79,7 +84,11 @@ namespace AudioStreamerAPI.DAO
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
             }
             return new OperationalStatus
@@ -102,7 +111,11 @@ namespace AudioStreamerAPI.DAO
                     statHasId.ViewCountsTotal++;
                     statHasId.Rating = memberstat.Rating;
 
-                    if (memberstat.Tags != null)
+                    if (memberstat.Tags!.Length == 0)
+                    {
+                        statHasId.Tags = Array.Empty<string>();
+                    }
+                    else
                     {
                         var newArrayLength = memberstat.Tags.Length;
                         statHasId.Tags = new string[newArrayLength];
@@ -120,7 +133,11 @@ namespace AudioStreamerAPI.DAO
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
             }
             return new OperationalStatus
@@ -148,7 +165,11 @@ namespace AudioStreamerAPI.DAO
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
             }
             return new OperationalStatus
@@ -182,7 +203,11 @@ namespace AudioStreamerAPI.DAO
             }
             catch (Exception ex)
             {
-                throw new Exception (ex.Message);
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.BadRequest,
+                    Message = ex.Message,
+                };
             }
         }
 
@@ -200,7 +225,11 @@ namespace AudioStreamerAPI.DAO
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.BadRequest,
+                    Message = ex.Message,
+                };
             }
         }
     }

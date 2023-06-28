@@ -8,11 +8,12 @@ namespace AudioStreamerAPI.Repositories
         //Yep, getting brain damage
         IEnumerable<Playlist> GetPlaylists();
         IEnumerable<Playlist> GetPlaylistsFromUser(int id);
+        IEnumerable<Playlist> GetPlaylistsFromUser(int userId, string name);
         IEnumerable<Track> GetTracksFromPlaylist(int id);
         IEnumerable<Playlist> SearchPlaylists(string name);
         Playlist? GetPlaylist(int id);
-        Playlist? GetPlaylistFromUser(int userId, int playlistId);
-        Playlist? GetPlaylistFromUser(int userId, string name);
+        Playlist? GetPlaylistByIdFromUser(int userId, int playlistId);
+        Playlist? GetPlaylistByNameFromUser(int userId, string name);
         IEnumerable<Playlist> GetPlaylists(string name);
         OperationalStatus AddPlaylist(Playlist playlist);
         OperationalStatus UpdatePlaylist(Playlist playlist);

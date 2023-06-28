@@ -1,4 +1,5 @@
-﻿using AudioStreamerAPI.DTO;
+﻿using AudioStreamerAPI.Constants;
+using AudioStreamerAPI.DTO;
 using AudioStreamerAPI.Models;
 using AudioStreamerAPI.Repositories;
 using AutoMapper;
@@ -26,10 +27,10 @@ namespace AudioStreamerAPI.Controllers
             return await Task.FromResult(tracks.ToList());
         }
 
-        [HttpGet("top")]
-        public async Task<ActionResult<IEnumerable<TrackDTO>>> GetTracksWithTheMostViewsOfTheDay()
+        [HttpGet("top/{number}")]
+        public async Task<ActionResult<IEnumerable<TrackDTO>>> GetTracksWithTheMostViewsOfTheDay(int number = NumericConstants.MAX_TOP_TRACKS)
         {
-            var tracks = _mapper.Map<IEnumerable<TrackDTO>>(_repo.GetTracksWithTheMostViewsOfTheDay());
+            var tracks = _mapper.Map<IEnumerable<TrackDTO>>(_repo.GetTracksWithTheMostViewsOfTheDay(number));
             return await Task.FromResult(tracks.ToList());
         }
 
@@ -54,7 +55,6 @@ namespace AudioStreamerAPI.Controllers
                 StatusCode = Constants.OperationalStatusEnums.NotFound,
                 Message = $"Track with id: ${id} not found.",
             };
-            //return track == null ? NotFound(id) : Ok(track);
             return StatusCode((int)result.StatusCode, result);
         }
 
@@ -81,14 +81,14 @@ namespace AudioStreamerAPI.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpPatch("incviews/track/{id}")]
+        [HttpPatch("views/increase/track/{id}")]
         public IActionResult IncreaseViewCountsOfTheDay(int id)
         {
             var result = _repo.IncreaseViewCountsOfTheDay(id);
             return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpPatch("resetviews")]
+        [HttpPatch("views/reset")]
         public IActionResult ResetViewCountsOfAllTracks()
         {
             var result = _repo.ResetViewCountsOfAllTracks();

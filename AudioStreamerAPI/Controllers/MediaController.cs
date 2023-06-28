@@ -42,7 +42,7 @@ namespace AudioStreamerAPI.Controllers
         [HttpPost("upload")]
         public async Task<IActionResult> UploadChunksAsync(
             int id, 
-            [AllowedExtensions(new string[] { ".ogg", ".mp3", ".wav", ".jpeg", ".jpg", ".png", ".gif" })] IFormFile file, 
+            [AllowedExtensions(new string[] { ".webm", ".ogg", ".mp3", ".wav", ".webp", ".jpeg", ".jpg", ".png", ".gif" })] IFormFile file, 
             string containerName)
         {
             try

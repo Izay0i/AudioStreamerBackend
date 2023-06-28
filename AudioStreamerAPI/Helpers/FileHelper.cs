@@ -6,7 +6,10 @@ namespace AudioStreamerAPI.Helpers
     {
         public static string SanitizeFileName(string fileName)
         {
-            fileName = Regex.Replace(fileName, $"[\\(/\\) ]+", "_");
+            //Hope i didn't miss any, cause that would be painful :D
+            //In order (from left to right): \ / ( ) [ ] # ' & , | { } ; : " < > ? ! @ $ % ^ * = + ~ .
+            // \ counts as a \ in verbatim string
+            fileName = Regex.Replace(fileName, @"[\\\/\(\)\[\]\#\'\&\,\|\{\}\;\:\""\<\>\?\!\@\$\%\^\*\=\+\~\. ]+", "_");
             return string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
         }
 

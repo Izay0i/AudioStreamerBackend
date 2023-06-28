@@ -20,35 +20,34 @@ namespace AudioStreamerAPI.Controllers
         }
 
         [HttpPost("register")]
-        public IActionResult Regiser([FromBody] CredentialsDTO credentials)
+        public IActionResult Register([FromBody] CredentialsDTO credentials)
         {
-            var member = _repo.GetMember(credentials.Email);
+            var member = _repo.GetMember(credentials.Email.Trim());
             if (member == null)
             {
-                Member m = new() {
+                if (credentials.DisplayName.Trim().Equals(string.Empty)) 
+                {
+                    return BadRequest(new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = "Display name can't be empty.",
+                    });
+                }
+
+                Member m = new()
+                {
                     Email = credentials.Email,
                     Password = credentials.Password,
                     DisplayName = credentials.DisplayName,
                 };
-
-                if (m.DisplayName.Trim().Equals(string.Empty)) 
-                {
-                    return BadRequest(m.DisplayName);
-                }
-                else
-                {
-                    var result = _repo.AddMember(m);
-                    return StatusCode((int)result.StatusCode, result);
-                }
+                var result = _repo.AddMember(m);
+                return StatusCode((int)result.StatusCode, result);
             }
-            else
+            return Conflict(new OperationalStatus
             {
-                return Conflict(new OperationalStatus
-                {
-                    StatusCode = OperationalStatusEnums.Conflict,
-                    Message = "User has already registered.",
-                });
-            }
+                StatusCode = OperationalStatusEnums.Conflict,
+                Message = "User has already registered.",
+            });
         }
 
         [HttpPost("login")]
@@ -61,6 +60,7 @@ namespace AudioStreamerAPI.Controllers
                 return StatusCode((int)result.StatusCode, result.StatusCode == OperationalStatusEnums.Ok ? new OperationalStatus
                 {
                     StatusCode = OperationalStatusEnums.Ok,
+                    Message = "Welcome back.",
                     Objects = new object[] { member.MemberId },
                 } : new OperationalStatus
                 {
@@ -68,11 +68,15 @@ namespace AudioStreamerAPI.Controllers
                     Message = "User not found.",
                 });
             }
-            return BadRequest(credentials.Email);
+            return BadRequest(new OperationalStatus
+            {
+                StatusCode = OperationalStatusEnums.BadRequest,
+                Message = $"Couldn't find account with email address of: {credentials.Email}",
+            });
         }
 
         [HttpPost("change")]
-        public IActionResult ChangePassword([FromBody] CredentialsDTO credentials, [MinLength(14)] string newPassword)
+        public IActionResult ChangePassword([FromBody] CredentialsDTO credentials, [MinLength(LengthConstants.MIN_PASSWORD_LENGTH)] string newPassword)
         {
             var member = _repo.GetMember(credentials.Email);
             if (member != null)
@@ -89,7 +93,11 @@ namespace AudioStreamerAPI.Controllers
                     }
                     catch (Exception ex)
                     {
-                        return BadRequest(ex.Message);
+                        return BadRequest(new OperationalStatus
+                        {
+                            StatusCode = OperationalStatusEnums.BadRequest,
+                            Message = ex.Message,
+                        });
                     }
                 }
                 return StatusCode((int)result.StatusCode, result);

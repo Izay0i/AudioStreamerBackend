@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using AudioStreamerAPI.Constants;
+using System.ComponentModel.DataAnnotations;
 
 namespace AudioStreamerAPI.DTO
 {
@@ -8,9 +9,9 @@ namespace AudioStreamerAPI.DTO
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
         [Required]
-        [MinLength(14)]
+        [MinLength(LengthConstants.MIN_PASSWORD_LENGTH)]
         public string Password { get; set; } = string.Empty;
-        [MinLength(5), MaxLength(20)]
+        [MinLength(LengthConstants.MIN_NAME_LENGTH), MaxLength(LengthConstants.MAX_DISPLAY_NAME_LENGTH)]
         public string DisplayName { get; set; } = string.Empty;
     }
 }

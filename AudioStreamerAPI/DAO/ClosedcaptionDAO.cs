@@ -1,4 +1,5 @@
-﻿using AudioStreamerAPI.Helpers;
+﻿using AudioStreamerAPI.Constants;
+using AudioStreamerAPI.Helpers;
 using AudioStreamerAPI.Models;
 
 namespace AudioStreamerAPI.DAO
@@ -26,7 +27,7 @@ namespace AudioStreamerAPI.DAO
             try
             {
                 var context = new fsnvdezgContext();
-                captions = context.Closedcaptions.ToList();
+                captions = context.Closedcaptions.OrderBy(cc => cc.CaptionId).ToList();
             }
             catch (Exception ex)
             {
@@ -76,21 +77,27 @@ namespace AudioStreamerAPI.DAO
                     Closedcaption caption = new()
                     {
                         TrackId = closedcaption.TrackId,
-                        Captions = closedcaption.Captions.IsValidJson() ? closedcaption.Captions : "[]",
+                        Captions = closedcaption.Captions != null && closedcaption.Captions.IsValidJson() ? closedcaption.Captions : "[]",
                     };
 
                     context.Closedcaptions.Add(caption);
                     context.SaveChanges();
+
+                    return new OperationalStatus
+                    {
+                        StatusCode = Constants.OperationalStatusEnums.Created,
+                        Message = "Successfully added closed caption.",
+                        Objects = new object[] { caption.CaptionId },
+                    };
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
-                return new OperationalStatus
-                {
-                    StatusCode = Constants.OperationalStatusEnums.Created,
-                    Message = "Successfully added closed caption.",
-                };
             }
             return new OperationalStatus
             {
@@ -113,7 +120,11 @@ namespace AudioStreamerAPI.DAO
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
                 return new OperationalStatus
                 {
@@ -141,7 +152,11 @@ namespace AudioStreamerAPI.DAO
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
                 return new OperationalStatus
                 {

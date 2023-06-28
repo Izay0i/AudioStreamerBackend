@@ -47,11 +47,6 @@ namespace AudioStreamerAPI.Controllers
                 StatusCode = Constants.OperationalStatusEnums.NotFound,
                 Message = $"User with id: {id} not found.",
             };
-            /*if (memberDTO != null)
-            {
-                return Ok(memberDTO);
-            }
-            return NotFound(id);*/
             return StatusCode((int)result.StatusCode, result);
         }
 

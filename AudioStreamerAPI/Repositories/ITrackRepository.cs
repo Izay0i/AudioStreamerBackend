@@ -5,9 +5,10 @@ namespace AudioStreamerAPI.Repositories
     public interface ITrackRepository
     {
         IEnumerable<Track> GetTracks();
-        IEnumerable<Track> GetTracksWithTheMostViewsOfTheDay();
+        IEnumerable<Track> GetTracksWithTheMostViewsOfTheDay(int n);
         IEnumerable<Track> GetTracksFromUserId(int uId);
         IEnumerable<Track> SearchTracks(string keyword);
+        IEnumerable<int> GetRandomTrackIds(int limit);
         Track? GetTrack(int id);
         Track? GetTrack(string name, string[]? tags);
         OperationalStatus AddTrack(Track track);

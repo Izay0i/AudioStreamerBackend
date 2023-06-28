@@ -25,11 +25,11 @@ namespace AudioStreamerAPI.DAO
 
         public IEnumerable<Track> GetTracks()
         {
-            List<Track>? tracks;
+            IEnumerable<Track>? tracks;
             try
             {
                 var context = new fsnvdezgContext();
-                tracks = context.Tracks.ToList();
+                tracks = context.Tracks.OrderByDescending(t => t.TrackId).ToList();
             }
             catch (Exception ex)
             {
@@ -38,13 +38,16 @@ namespace AudioStreamerAPI.DAO
             return tracks;
         }
 
-        public IEnumerable<Track> GetTracksWithTheMostViewsOfTheDay()
+        public IEnumerable<Track> GetTracksWithTheMostViewsOfTheDay(int n)
         {
-            List<Track>? tracks;
+            IEnumerable<Track>? tracks;
             try
             {
                 var context = new fsnvdezgContext();
-                tracks = context.Tracks.OrderByDescending(track => track.ViewCountsPerDay).ToList();
+                tracks = context.Tracks
+                    .OrderByDescending(track => track.ViewCountsPerDay)
+                    .ThenByDescending(track => track.TrackId)
+                    .Take(n);
             }
             catch (Exception ex)
             {
@@ -55,11 +58,11 @@ namespace AudioStreamerAPI.DAO
 
         public IEnumerable<Track> GetTracksFromUserId(int uId)
         {
-            List<Track>? tracks;
+            IEnumerable<Track>? tracks;
             try
             {
                 var context = new fsnvdezgContext();
-                tracks = context.Tracks.Where(track => track.MemberId == uId).ToList();
+                tracks = context.Tracks.Where(track => track.MemberId == uId).OrderByDescending(t => t.TrackId).ToList();
             }
             catch (Exception ex)
             {
@@ -70,7 +73,7 @@ namespace AudioStreamerAPI.DAO
 
         public IEnumerable<Track> SearchTracks(string keyword)
         {
-            List<Track>? tracks;
+            IEnumerable<Track>? tracks;
             try
             {
                 //TODO: REFACTOR
@@ -79,13 +82,31 @@ namespace AudioStreamerAPI.DAO
                 filteredTracks.AddRange(context.Tracks.Where(t => t.ArtistName.Contains(keyword)));
                 filteredTracks.AddRange(context.Tracks.Where(t => t.TrackName.Contains(keyword.Trim())));
                 filteredTracks.AddRange(context.Tracks.Where(t => t.Tags!.Contains(keyword.Trim())));
-                tracks = filteredTracks.Distinct().ToList();
+                tracks = filteredTracks.Distinct()
+                    .OrderByDescending(t => t.TrackId)
+                    .ThenByDescending(t => t.ViewCountsPerDay)
+                    .ToList();
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
             return tracks;
+        }
+
+        public IEnumerable<int> GetRandomTrackIds(int limit)
+        {
+            List<int> trackIds = new();
+            try
+            {
+                var context = new fsnvdezgContext();
+                trackIds = context.Tracks.Select(track => track.TrackId).OrderBy(t => Guid.NewGuid()).Take(limit).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            return trackIds;
         }
 
         public Track? GetTrack(int id)
@@ -138,7 +159,7 @@ namespace AudioStreamerAPI.DAO
                 try
                 {
                     var context = new fsnvdezgContext();
-                    Track t = new()
+                    /*Track t = new()
                     {
                         MemberId = track.MemberId,
                         TrackName = track.TrackName,
@@ -147,9 +168,9 @@ namespace AudioStreamerAPI.DAO
                         Url = track.Url,
                         Thumbnail = track.Thumbnail,
                         Tags = track.Tags,
-                    };
+                    };*/
 
-                    context.Tracks.Add(t);
+                    context.Tracks.Add(track);
                     context.SaveChanges();
                     return new OperationalStatus
                     {
@@ -159,7 +180,11 @@ namespace AudioStreamerAPI.DAO
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
             }
         }
@@ -194,7 +219,11 @@ namespace AudioStreamerAPI.DAO
                         trackHasId.Thumbnail = track.Thumbnail;
                     }
 
-                    if (track.Tags != null)
+                    if (track.Tags!.Length == 0)
+                    {
+                        trackHasId.Tags = Array.Empty<string>();
+                    }
+                    else
                     {
                         var newArrayLength = track.Tags.Length;
                         trackHasId.Tags = new string[newArrayLength];
@@ -215,7 +244,11 @@ namespace AudioStreamerAPI.DAO
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
             }
             return new OperationalStatus
@@ -245,7 +278,11 @@ namespace AudioStreamerAPI.DAO
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
             }
             return new OperationalStatus
@@ -271,7 +308,11 @@ namespace AudioStreamerAPI.DAO
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.BadRequest,
+                    Message = ex.Message,
+                };
             }
         }
 
@@ -293,7 +334,11 @@ namespace AudioStreamerAPI.DAO
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    return new OperationalStatus
+                    {
+                        StatusCode = OperationalStatusEnums.BadRequest,
+                        Message = ex.Message,
+                    };
                 }
             }
             return new OperationalStatus
