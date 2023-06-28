@@ -4,7 +4,10 @@ namespace RecommendationSystem
 {
     internal class RatingPrediction
     {
+        [ColumnName("PredictedLabel")]
+        public bool PredictedLabel { get; set; }
+
         [ColumnName("Score")]
-        public float Rating;
+        public float Rating { get; set; }
     }
 }

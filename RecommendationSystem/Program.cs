@@ -2,7 +2,7 @@
 using Microsoft.ML.Data;
 using System.Configuration;
 using Npgsql;
-using Newtonsoft.Json.Converters;
+using Microsoft.ML.Trainers;
 
 namespace RecommendationSystem
 {
@@ -12,6 +12,7 @@ namespace RecommendationSystem
         {
             var connectionString = ConfigurationManager.AppSettings["connectionString"];
             var loader = context.Data.CreateDatabaseLoader<UserStats>();
+            //var sqlCommand = "SELECT CAST(member_id as REAL) as member_id, CAST(track_id as REAL) as track_id, CAST(view_counts_total as REAL) as view_counts_total, CAST(rating as REAL) as rating from memberstats";
             var sqlCommand = "SELECT CAST(member_id as REAL) as member_id, CAST(track_id as REAL) as track_id, CAST(rating as REAL) as rating from memberstats";
             var dbSource = new DatabaseSource(NpgsqlFactory.Instance, connectionString, sqlCommand);
             Console.WriteLine("Loading data from database...");
@@ -21,61 +22,52 @@ namespace RecommendationSystem
             return (set.TrainSet, set.TestSet);
         }
 
-        static ITransformer Train(MLContext context, IDataView trainData)
+        static ITransformer TrainModel(MLContext context, IDataView trainData)
         {
-            var pipeline = context.Transforms.CopyColumns(outputColumnName: "Label", inputColumnName: nameof(UserStats.Rating))
-                                                .Append(context.Transforms.Categorical.OneHotEncoding(outputColumnName: "MemberIdEncoded", inputColumnName: nameof(UserStats.MemberId)))
-                                                .Append(context.Transforms.Categorical.OneHotEncoding(outputColumnName: "TrackIdEncoded", inputColumnName: nameof(UserStats.TrackId)))
-                                                .Append(context.Transforms.Concatenate("Features", "MemberIdEncoded", "TrackIdEncoded"))
-                                                .Append(context.Regression.Trainers.FastTree());
-            var model = pipeline.Fit(trainData);
+            var targetMap = new Dictionary<float, bool>
+            {
+                { 1.0f, true },
+                { 0.0f, false }
+            };
+            
+            var a = context.Transforms.Categorical.OneHotEncoding(new[] { new InputOutputColumnPair(nameof(UserStats.MemberId), nameof(UserStats.MemberId)) });
+            var b = context.Transforms.Categorical.OneHotEncoding(new[] { new InputOutputColumnPair(nameof(UserStats.TrackId), nameof(UserStats.TrackId)) });
+            var c = context.Transforms.Concatenate("Features", new[] { nameof(UserStats.MemberId), nameof(UserStats.TrackId) });
+            var dataPipe = context.Transforms.Conversion.MapValue(nameof(UserStats.Rating), targetMap)
+                                    .Append(a)
+                                    .Append(b)
+                                    .Append(c);
+
+            var options = new LbfgsLogisticRegressionBinaryTrainer.Options()
+            {
+                LabelColumnName = nameof(UserStats.Rating),
+                FeatureColumnName = "Features",
+                MaximumNumberOfIterations = 100,
+                OptimizationTolerance = 1e-8f,
+            };
+
+            var trainer = context.BinaryClassification.Trainers.LbfgsLogisticRegression(options);
+            var trainPipe = dataPipe.Append(trainer);
+            ITransformer model = trainPipe.Fit(trainData);
             return model;
         }
 
-        static void Evaluate(MLContext context, ITransformer model, IDataView testData)
+        static void Evaluate(MLContext context, IDataView trainData, ITransformer model)
         {
-            /*
-             * The root of mean squared error (RMS or RMSE) is used to measure the differences between the model predicted values 
-             * and the test dataset observed values. 
-             * Technically it's the square root of the average of the squares of the errors. 
-             * The lower it is, the better the model is.
-             */
+            IDataView predictions = model.Transform(trainData);
+            var metrics = context.BinaryClassification.EvaluateNonCalibrated(predictions, nameof(UserStats.Rating), "Score");
+            Console.WriteLine($"Model accuracy: {metrics.Accuracy:F4}");
 
-            /*
-             * R Squared indicates how well data fits a model. 
-             * Ranges from 0 to 1. 
-             * A value of 0 means that the data is random or otherwise can't be fit to the model. 
-             * A value of 1 means that the model exactly matches the data. 
-             * You want your R Squared score to be as close to 1 as possible.
-             */
-
-            var predictions = model.Transform(testData);
-            var metrics = context.Regression.Evaluate(predictions, "Label", "Score");
-            Console.WriteLine();
-            Console.WriteLine($"*************************************************");
-            Console.WriteLine($"*       Model quality metrics evaluation         ");
-            Console.WriteLine($"*------------------------------------------------");
-            Console.WriteLine($"*       RSquared Score:      {metrics.RSquared:0.##}");
-            Console.WriteLine($"*       Root Mean Squared Error:      {metrics.RootMeanSquaredError:#.##}");
-        }
-
-        static void TestSinglePrediction(MLContext context, ITransformer model)
-        {
-            var predictionFunction = context.Model.CreatePredictionEngine<UserStats, RatingPrediction>(model);
             var sample = new UserStats
             {
                 MemberId = 10,
                 TrackId = 53,
             };
-            //No it's not accurate by all means, but I'll take what I can
-            var prediction = predictionFunction.Predict(sample);
-            Console.WriteLine($"**********************************************************************");
-            Console.WriteLine($"Predicted rating: {prediction.Rating:0.####}");
-            Console.WriteLine($"**********************************************************************");
 
-            //Specify a hard limit whether or not if you want to suggest this item to the user
-            var recommend = prediction.Rating >= 0.65 ? "Yes" : "No";
-            Console.WriteLine($"Recommend track with id: {sample.TrackId} to user with id: {sample.MemberId}? {recommend}");
+            var pe = context.Model.CreatePredictionEngine<UserStats, RatingPrediction>(model);
+            var output = pe.Predict(sample);
+            Console.WriteLine($"Predicted label: {output.PredictedLabel}");
+            Console.WriteLine($"Score: {output.Rating}");
         }
 
         static void SaveModel(MLContext context, ITransformer model, DataViewSchema dataSchema, string modelPath)
@@ -83,7 +75,7 @@ namespace RecommendationSystem
             //It's in /bin
             //Thanks
             //No problem
-            Console.WriteLine("=============== Saving the model to a file ===============");
+            Console.WriteLine("Saving the model to a file");
             var path = Path.Combine(Environment.CurrentDirectory, modelPath);
             context.Model.Save(model, dataSchema, path);
         }
@@ -94,9 +86,8 @@ namespace RecommendationSystem
             //Hell yeah Mr. White
             var context = new MLContext();
             (IDataView trainData, IDataView testData) = LoadData(context);
-            var model = Train(context, trainData);
-            Evaluate(context, model, testData);
-            TestSinglePrediction(context, model);
+            ITransformer model = TrainModel(context, trainData);
+            Evaluate(context, trainData, model);
             SaveModel(context, model, trainData.Schema, "model.zip");
         }
     }

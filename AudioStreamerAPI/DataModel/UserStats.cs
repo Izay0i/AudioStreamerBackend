@@ -1,6 +1,4 @@
-﻿using Microsoft.ML.Data;
-
-namespace AudioStreamerAPI.DataModel
+﻿namespace AudioStreamerAPI.DataModel
 {
     public class UserStats
     {

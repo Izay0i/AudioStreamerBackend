@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.ML;
 using AudioStreamerAPI.Repositories;
 using AudioStreamerAPI.DTO;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using AutoMapper;
-using Microsoft.ML;
 
 namespace AudioStreamerAPI.Controllers
 {
@@ -41,12 +39,13 @@ namespace AudioStreamerAPI.Controllers
                 var trackIds = _repo.GetRandomTrackIds(limit);
                 foreach (var id in trackIds)
                 {
-                    var rating = _pool.Predict(NamedConstants.PREDICTION_MODEL_NAME, new UserStats
+                    var recommend = _pool.Predict(NamedConstants.PREDICTION_MODEL_NAME, new UserStats
                     {
                         MemberId = uId,
                         TrackId = id,
-                    }).Rating;
-                    if (rating >= NumericConstants.MIN_RECOMMENDED_VALUE)
+                    }).PredictedLabel;
+
+                    if (recommend)
                     {
                         recommendedIds.Add(id);
                     }
@@ -72,12 +71,12 @@ namespace AudioStreamerAPI.Controllers
         [HttpPost]
         public ActionResult Predict([FromBody] UserStats input)
         {
-            var rating = _pool.Predict(NamedConstants.PREDICTION_MODEL_NAME, input).Rating;
+            var recommend = _pool.Predict(NamedConstants.PREDICTION_MODEL_NAME, input).PredictedLabel;
             var result = new OperationalStatus
             {
-                StatusCode = rating >= NumericConstants.MIN_RECOMMENDED_VALUE ? OperationalStatusEnums.Ok : OperationalStatusEnums.NotFound,
-                Message = rating >= NumericConstants.MIN_RECOMMENDED_VALUE ? "Recommended" : "Not recommended",
-                Objects = new object[] { rating }, 
+                StatusCode = recommend ? OperationalStatusEnums.Ok : OperationalStatusEnums.NotFound,
+                Message = recommend ? "Recommended" : "Not recommended",
+                Objects = new object[] { recommend }, 
             };
             return StatusCode((int)result.StatusCode, result);
         }
