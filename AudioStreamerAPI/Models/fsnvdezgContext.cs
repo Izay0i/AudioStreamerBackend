@@ -203,6 +203,8 @@ namespace AudioStreamerAPI.Models
 
                 entity.Property(e => e.ArtistName).HasColumnName("artist_name");
 
+                entity.Property(e => e.CaptionsLength).HasColumnName("captions_length");
+
                 entity.Property(e => e.DateCreated)
                     .HasColumnType("timestamp without time zone")
                     .HasColumnName("date_created")
@@ -211,6 +213,8 @@ namespace AudioStreamerAPI.Models
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
                     .HasDefaultValueSql("''::text");
+
+                entity.Property(e => e.HasCaptions).HasColumnName("has_captions");
 
                 entity.Property(e => e.MemberId)
                     .ValueGeneratedOnAdd()

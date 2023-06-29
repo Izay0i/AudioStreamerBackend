@@ -159,17 +159,6 @@ namespace AudioStreamerAPI.DAO
                 try
                 {
                     var context = new fsnvdezgContext();
-                    /*Track t = new()
-                    {
-                        MemberId = track.MemberId,
-                        TrackName = track.TrackName,
-                        ArtistName = track.ArtistName,
-                        Description = track.Description,
-                        Url = track.Url,
-                        Thumbnail = track.Thumbnail,
-                        Tags = track.Tags,
-                    };*/
-
                     context.Tracks.Add(track);
                     context.SaveChanges();
                     return new OperationalStatus
@@ -221,7 +210,10 @@ namespace AudioStreamerAPI.DAO
 
                     if (track.Tags!.Length == 0)
                     {
-                        trackHasId.Tags = Array.Empty<string>();
+                        if (trackHasId.Tags!.Length == 0)
+                        {
+                            trackHasId.Tags = Array.Empty<string>();
+                        }
                     }
                     else
                     {
@@ -230,10 +222,8 @@ namespace AudioStreamerAPI.DAO
                         track.Tags.CopyTo(trackHasId.Tags, 0);
                     }
 
-                    if (trackHasId.ViewCountsPerDay != track.ViewCountsPerDay)
-                    {
-                        trackHasId.ViewCountsPerDay = track.ViewCountsPerDay;
-                    }
+                    trackHasId.HasCaptions = track.HasCaptions;
+                    trackHasId.CaptionsLength = track.CaptionsLength;
 
                     context.SaveChanges();
                     return new OperationalStatus

@@ -23,6 +23,10 @@ namespace AudioStreamerAPI.DTO
         public string[]? Tags { get; set; }
         [DefaultValue(0)]
         public int ViewCountsPerDay { get; set; }
+        [DefaultValue(false)]
+        public bool HasCaptions { get; set; }
+        [DefaultValue(0)]
+        public int CaptionsLength { get; set; }
         public DateTime DateCreated { get; set; }
     }
 }

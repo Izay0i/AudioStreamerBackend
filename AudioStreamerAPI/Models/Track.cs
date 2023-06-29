@@ -21,6 +21,8 @@ namespace AudioStreamerAPI.Models
         public string[]? Tags { get; set; }
         public int ViewCountsPerDay { get; set; }
         public DateTime DateCreated { get; set; }
+        public int CaptionsLength { get; set; }
+        public bool HasCaptions { get; set; }
 
         public virtual Member Member { get; set; } = null!;
         public virtual ICollection<Closedcaption> Closedcaptions { get; set; }
