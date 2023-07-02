@@ -5,8 +5,14 @@ using AudioStreamerAPI.DataModel;
 using AudioStreamerAPI.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.ML;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = AzureConstants.MAX_FILE_SIZE;
+});
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 

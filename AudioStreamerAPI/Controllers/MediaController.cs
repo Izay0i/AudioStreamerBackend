@@ -37,9 +37,9 @@ namespace AudioStreamerAPI.Controllers
             return File(stream, contentType, true);
         }
 
+        [HttpPost("upload")]
         [RequestSizeLimit(AzureConstants.MAX_FILE_SIZE)]
         [RequestFormLimits(MultipartBodyLengthLimit = AzureConstants.MAX_FILE_SIZE)]
-        [HttpPost("upload")]
         public async Task<IActionResult> UploadChunksAsync(
             int id, 
             [AllowedExtensions(new string[] { ".webm", ".ogg", ".mp3", ".wav", ".webp", ".jpeg", ".jpg", ".png", ".gif" })] IFormFile file, 
