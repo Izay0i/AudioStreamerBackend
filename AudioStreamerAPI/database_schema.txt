@@ -1,0 +1,77 @@
+/* Order of deletion:
+* ClosedCaption |& MemberStats > Track ~ Playlist > Member
+* |&: and or
+* ~ interchangeable
+*/
+
+create table Member(
+	member_id serial not null,
+	email text not null,
+	password text not null,
+	token text not null,
+	display_name text not null,
+	name_tag text not null,
+	biography text not null default '',
+	avatar text not null default '',
+	following_ids integer[] default '{}',
+	date_created timestamp without time zone not null default now(),
+	constraint pk_member_id primary key(member_id)
+);
+
+create table Track(
+	track_id serial not null,
+	member_id serial not null,
+	track_name text not null,
+	artist_name text not null,
+	description text not null default '',
+	url text not null default '',
+	thumbnail text not null default '',
+	tags text[] default '{}',
+	view_counts_per_day integer not null default 0,
+	has_captions boolean not null default false,
+	captions_length integer not null default 0,
+	date_created timestamp without time zone not null default now(),
+	constraint pk_track_id primary key(track_id),
+	constraint fk_member_id foreign key(member_id) references Member(member_id)
+);
+
+create table MemberStats(
+	member_id serial not null,
+	track_id serial not null,
+	view_counts_total integer not null default 1,
+	rating integer not null default 0,
+	tags text[] default '{}',
+	date_created timestamp without time zone not null default now(),
+	constraint pk_com_memstat primary key(member_id, track_id),
+	constraint fk_member_id foreign key(member_id) references Member(member_id),
+	constraint fk_track_id foreign key(track_id) references Track(track_id)
+);
+
+create table ClosedCaption(
+	caption_id serial not null,
+	track_id serial not null,
+	/*
+	* [
+	* 	{ 
+	*		"timestamp": "xxx.xxx", 
+	*		"message": "example text", 
+	*		"duration": "xxx.xxx" 
+	*	} 
+	* ]
+	*/
+	captions jsonb not null default '[]'::jsonb,
+	date_created timestamp without time zone not null default now(),
+	constraint pk_caption_id primary key(caption_id),
+	constraint fk_track_id foreign key(track_id) references Track(track_id)
+);
+
+create table Playlist(
+	playlist_id serial not null,
+	member_id serial not null,
+	name text not null default '',
+	description text not null default '',
+	tracks_ids integer[] default '{}',
+	date_created timestamp without time zone not null default now(),
+	constraint pk_playlist_id primary key(playlist_id),
+	constraint fk_member_id foreign key(member_id) references Member(member_id)
+);

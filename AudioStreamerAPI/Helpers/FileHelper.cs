@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using Azure.Storage.Blobs;
+using NAudio.Wave;
+using System.Text.RegularExpressions;
 
 namespace AudioStreamerAPI.Helpers
 {
@@ -39,6 +41,33 @@ namespace AudioStreamerAPI.Helpers
             var relativeUri = new Uri(storageUri).MakeRelativeUri(new Uri(fileUri)).ToString();
             var blob = relativeUri.Split($"{containerName}/");
             return blob[^1];
+        }
+
+        public static async Task<string> CreateTempWaveFilePath(BlobClient blobClient)
+        {
+            using var stream = new MemoryStream();
+            await blobClient.DownloadToAsync(stream);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            var tempFileName = Path.GetTempFileName();
+            var tempFilePath = Path.GetTempPath();
+            var tempFileDirectory = Path.Combine(tempFilePath, tempFileName);
+            using (var fs = new FileStream(tempFileDirectory, FileMode.OpenOrCreate))
+            {
+                stream.CopyTo(fs);
+            }
+
+            const string tempWaveFile = "TEMP.wav";
+            var tempWaveDirectory = Path.Combine(tempFilePath, tempWaveFile);
+            var waveFormat = new WaveFormat(16000, 16, 1);
+            using (var resampler = new MediaFoundationResampler(new AudioFileReader(tempFileName), waveFormat))
+            {
+                //Highest quality
+                resampler.ResamplerQuality = 60;
+                WaveFileWriter.CreateWaveFile(tempWaveDirectory, resampler);
+            }
+
+            return tempWaveDirectory;
         }
     }
 }
