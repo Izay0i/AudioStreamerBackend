@@ -6,14 +6,12 @@ namespace AudioStreamerAPI.Helpers
 {
     public class SpeechRecognitionHelper
     {
-        public static async Task<IEnumerable<CaptionItemDTO>> FromWaveFile(SpeechConfig speechConfig, string filePath)
+        public static async Task FromWaveFile(SpeechConfig speechConfig, string filePath, Action<CaptionItemDTO> caption)
         {
             using var audioConfigStream = AudioInputStream.CreatePushStream();
             using var audioConfig = AudioConfig.FromWavFileInput(filePath);
             using var speechRecognizer = new SpeechRecognizer(speechConfig, audioConfig);
             var stopRecognition = new TaskCompletionSource<int>();
-
-            List<CaptionItemDTO> results = new();
 
             speechRecognizer.Recognized += (s, e) =>
             {
@@ -27,7 +25,7 @@ namespace AudioStreamerAPI.Helpers
                             Duration = e.Result.Duration.TotalSeconds,
                             Message = e.Result.Text,
                         };
-                        results.Add(captionItem);
+                        caption(captionItem);
                     }
                 }
             };
@@ -38,17 +36,13 @@ namespace AudioStreamerAPI.Helpers
 
                 if (e.Reason == CancellationReason.Error)
                 {
-                    Console.WriteLine($"CANCELED: ErrorCode={e.ErrorCode}");
-                    Console.WriteLine($"CANCELED: ErrorDetails={e.ErrorDetails}");
-                    Console.WriteLine($"CANCELED: Did you set the speech resource key and region values?");
-
                     var captionItem = new CaptionItemDTO
                     {
                         Timestamp = 0.0,
                         Duration = 999.0,
                         Message = $"Error code: {e.ErrorCode}\tDetails: {e.ErrorDetails}",
                     };
-                    results.Add(captionItem);
+                    caption(captionItem);
                 }
 
                 stopRecognition.TrySetResult(0);
@@ -59,8 +53,6 @@ namespace AudioStreamerAPI.Helpers
             Task.WaitAny(new[] { stopRecognition.Task });
             // Make the following call at some point to stop recognition:
             await speechRecognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
-
-            return results;
         }
     }
 }

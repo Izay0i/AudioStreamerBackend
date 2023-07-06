@@ -1,10 +1,13 @@
 ﻿using AudioStreamerAPI.Attributes;
 using AudioStreamerAPI.Constants;
+using AudioStreamerAPI.DTO;
 using AudioStreamerAPI.Helpers;
 using Azure.Storage;
 using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CognitiveServices.Speech;
+using System.Threading.Channels;
 
 namespace AudioStreamerAPI.Controllers
 {
@@ -13,7 +16,7 @@ namespace AudioStreamerAPI.Controllers
     public class MediaController : ControllerBase
     {
         [HttpGet("transcribe")]
-        public async Task<IActionResult> TranscribeFromWaveFile(string src, string lang = "en-US")
+        public async IAsyncEnumerable<CaptionItemDTO> TranscribeFromWaveFile(string src, string lang = "en-US")
         {
             var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
             var connectionString = config.GetSection("Azure")["URL"];
@@ -34,13 +37,15 @@ namespace AudioStreamerAPI.Controllers
             speechConfig.SpeechRecognitionLanguage= lang;
             speechConfig.EnableDictation();
 
-            var result = await SpeechRecognitionHelper.FromWaveFile(speechConfig, tempWaveFilePath);
-            return Ok(new OperationalStatus
+            HttpContext.Features.Get<IHttpResponseBodyFeature>()?.DisableBuffering();
+
+            var buffer = Channel.CreateUnbounded<CaptionItemDTO>();
+            Task task = SpeechRecognitionHelper.FromWaveFile(speechConfig, tempWaveFilePath, caption => buffer.Writer.WriteAsync(caption));
+            _ = task.ContinueWith(t => buffer.Writer.TryComplete(t.Exception), default, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            await foreach (var result in buffer.Reader.ReadAllAsync())
             {
-                StatusCode = OperationalStatusEnums.Ok,
-                Message = "Transcribing complete.",
-                Objects = new object[] { result },
-            });
+                yield return result;
+            }
         }
 
         [HttpGet]
