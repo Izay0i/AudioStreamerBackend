@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Threading.Tasks;
 
 namespace AudioStreamerWebJobs
 {
@@ -8,7 +9,7 @@ namespace AudioStreamerWebJobs
     {
         // Please set the following connection strings in app.config for this WebJob to run:
         // AzureWebJobsDashboard and AzureWebJobsStorage
-        static void Main()
+        static async Task Main()
         {
             var builder = new HostBuilder().ConfigureWebJobs(webJobs =>
             {
@@ -17,10 +18,14 @@ namespace AudioStreamerWebJobs
             }).ConfigureServices(services =>
             {
                 services.AddTransient<Functions>();
-                services.AddTransient<ResetViews>();
-            }).Build();
+                services.AddSingleton<ResetViews>();
+            });
 
-            builder.Run();
+            var host = builder.Build();
+            using (host)
+            {
+                await host.StartAsync();
+            }
         }
     }
 }
