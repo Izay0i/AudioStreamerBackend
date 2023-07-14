@@ -16,7 +16,9 @@ namespace AudioStreamerAPI.Models
         {
         }
 
+        public virtual DbSet<Artistinfo> Artistinfos { get; set; } = null!;
         public virtual DbSet<Closedcaption> Closedcaptions { get; set; } = null!;
+        public virtual DbSet<Genre> Genres { get; set; } = null!;
         public virtual DbSet<Member> Members { get; set; } = null!;
         public virtual DbSet<Memberstat> Memberstats { get; set; } = null!;
         public virtual DbSet<Playlist> Playlists { get; set; } = null!;
@@ -54,6 +56,36 @@ namespace AudioStreamerAPI.Models
                 .HasPostgresExtension("uuid-ossp")
                 .HasPostgresExtension("xml2");
 
+            modelBuilder.Entity<Artistinfo>(entity =>
+            {
+                entity.ToTable("artistinfo");
+
+                entity.Property(e => e.ArtistinfoId).HasColumnName("artistinfo_id");
+
+                entity.Property(e => e.ArtistName).HasColumnName("artist_name");
+
+                entity.Property(e => e.Avatar)
+                    .HasColumnName("avatar")
+                    .HasDefaultValueSql("''::text");
+
+                entity.Property(e => e.DateCreated)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("date_created")
+                    .HasDefaultValueSql("now()");
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("description")
+                    .HasDefaultValueSql("''::text");
+
+                entity.Property(e => e.MainSiteAddress)
+                    .HasColumnName("main_site_address")
+                    .HasDefaultValueSql("''::text");
+
+                entity.Property(e => e.TracksIds)
+                    .HasColumnName("tracks_ids")
+                    .HasDefaultValueSql("'{}'::integer[]");
+            });
+
             modelBuilder.Entity<Closedcaption>(entity =>
             {
                 entity.HasKey(e => e.CaptionId)
@@ -82,6 +114,20 @@ namespace AudioStreamerAPI.Models
                     .HasForeignKey(d => d.TrackId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_track_id");
+            });
+
+            modelBuilder.Entity<Genre>(entity =>
+            {
+                entity.ToTable("genre");
+
+                entity.Property(e => e.GenreId).HasColumnName("genre_id");
+
+                entity.Property(e => e.DateCreated)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("date_created")
+                    .HasDefaultValueSql("now()");
+
+                entity.Property(e => e.GenreName).HasColumnName("genre_name");
             });
 
             modelBuilder.Entity<Member>(entity =>
@@ -138,6 +184,10 @@ namespace AudioStreamerAPI.Models
                     .HasColumnName("date_created")
                     .HasDefaultValueSql("now()");
 
+                entity.Property(e => e.GenreId)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnName("genre_id");
+
                 entity.Property(e => e.Rating).HasColumnName("rating");
 
                 entity.Property(e => e.Tags)
@@ -147,6 +197,12 @@ namespace AudioStreamerAPI.Models
                 entity.Property(e => e.ViewCountsTotal)
                     .HasColumnName("view_counts_total")
                     .HasDefaultValueSql("1");
+
+                entity.HasOne(d => d.Genre)
+                    .WithMany(p => p.Memberstats)
+                    .HasForeignKey(d => d.GenreId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_genre_id");
 
                 entity.HasOne(d => d.Member)
                     .WithMany(p => p.Memberstats)
@@ -203,6 +259,10 @@ namespace AudioStreamerAPI.Models
 
                 entity.Property(e => e.ArtistName).HasColumnName("artist_name");
 
+                entity.Property(e => e.ArtistinfoId)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnName("artistinfo_id");
+
                 entity.Property(e => e.CaptionsLength).HasColumnName("captions_length");
 
                 entity.Property(e => e.DateCreated)
@@ -213,6 +273,10 @@ namespace AudioStreamerAPI.Models
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
                     .HasDefaultValueSql("''::text");
+
+                entity.Property(e => e.GenreId)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnName("genre_id");
 
                 entity.Property(e => e.HasCaptions).HasColumnName("has_captions");
 
@@ -235,6 +299,18 @@ namespace AudioStreamerAPI.Models
                     .HasDefaultValueSql("''::text");
 
                 entity.Property(e => e.ViewCountsPerDay).HasColumnName("view_counts_per_day");
+
+                entity.HasOne(d => d.Artistinfo)
+                    .WithMany(p => p.Tracks)
+                    .HasForeignKey(d => d.ArtistinfoId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_artistinfo_id");
+
+                entity.HasOne(d => d.Genre)
+                    .WithMany(p => p.Tracks)
+                    .HasForeignKey(d => d.GenreId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_genre_id");
 
                 entity.HasOne(d => d.Member)
                     .WithMany(p => p.Tracks)

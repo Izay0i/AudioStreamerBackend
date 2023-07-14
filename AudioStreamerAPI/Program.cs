@@ -25,6 +25,8 @@ builder.Services.AddDbContext<fsnvdezgContext>(opt => opt.UseNpgsql(ConnStr.Get(
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 builder.Services.AddScoped<IMemberstatsRepository, MemberstatsRepository>();
 builder.Services.AddScoped<IFollowerRepository, FollowerRepository>();
+builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+builder.Services.AddScoped<IArtistInfoRepository, ArtistInfoRepository>();
 builder.Services.AddScoped<ITrackRepository, TrackRepository>();
 builder.Services.AddScoped<IPlaylistRepository, PlaylistRepository>();
 builder.Services.AddScoped<ICaptionRepository, CaptionRepository>();

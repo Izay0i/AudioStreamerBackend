@@ -23,7 +23,11 @@ namespace AudioStreamerAPI.Models
         public DateTime DateCreated { get; set; }
         public int CaptionsLength { get; set; }
         public bool HasCaptions { get; set; }
+        public int GenreId { get; set; }
+        public int ArtistinfoId { get; set; }
 
+        public virtual Artistinfo Artistinfo { get; set; } = null!;
+        public virtual Genre Genre { get; set; } = null!;
         public virtual Member Member { get; set; } = null!;
         public virtual ICollection<Closedcaption> Closedcaptions { get; set; }
         public virtual ICollection<Memberstat> Memberstats { get; set; }

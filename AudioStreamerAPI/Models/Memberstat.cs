@@ -11,7 +11,9 @@ namespace AudioStreamerAPI.Models
         public int Rating { get; set; }
         public string[]? Tags { get; set; }
         public DateTime DateCreated { get; set; }
+        public int GenreId { get; set; }
 
+        public virtual Genre Genre { get; set; } = null!;
         public virtual Member Member { get; set; } = null!;
         public virtual Track Track { get; set; } = null!;
     }

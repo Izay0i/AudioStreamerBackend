@@ -11,6 +11,10 @@ namespace AudioStreamerAPI.DTO
         [Required]
         public int MemberId { get; set; }
         [Required]
+        public int GenreId { get; set; }
+        [Required]
+        public int ArtistinfoId { get; set; }
+        [Required]
         [MinLength(LengthConstants.MIN_NAME_LENGTH), MaxLength(LengthConstants.MAX_NAME_LENGTH)]
         public string TrackName { get; set; } = null!;
         [Required]

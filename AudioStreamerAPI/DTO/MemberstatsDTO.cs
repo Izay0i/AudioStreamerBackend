@@ -9,6 +9,8 @@ namespace AudioStreamerAPI.DTO
         public int MemberId { get; set; }
         [Required]
         public int TrackId { get; set; }
+        [Required]
+        public int GenreId { get; set; }
         [DefaultValue(0)]
         public int ViewCountsTotal { get; set; }
         [DefaultValue(0)]

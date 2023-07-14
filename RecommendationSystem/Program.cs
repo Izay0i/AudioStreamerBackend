@@ -60,8 +60,8 @@ namespace RecommendationSystem
 
             var sample = new UserStats
             {
-                MemberId = 10,
-                TrackId = 53,
+                MemberId = 23,
+                TrackId = 121,
             };
 
             var pe = context.Model.CreatePredictionEngine<UserStats, RatingPrediction>(model);

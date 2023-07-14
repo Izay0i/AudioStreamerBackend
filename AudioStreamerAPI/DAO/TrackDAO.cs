@@ -188,6 +188,9 @@ namespace AudioStreamerAPI.DAO
                     var context = new fsnvdezgContext();
                     context.Tracks.Attach(trackHasId);
 
+                    trackHasId.GenreId = track.GenreId;
+                    trackHasId.ArtistinfoId = track.ArtistinfoId;
+
                     if (track.TrackName != null)
                     {
                         trackHasId.TrackName = track.TrackName;

@@ -21,6 +21,36 @@ namespace AudioStreamerAPI.DAO
             }
         }
 
+        public IEnumerable<dynamic> GetCustomStatsOfEachTrackWithMostViewsAndLikesFromGenre(int genreId, int limit)
+        {
+            try
+            {
+                var context = new fsnvdezgContext();
+                var stats = context.Memberstats.ToList();
+                var topStats = stats.Where(s => genreId == 0 ? s.GenreId > genreId : s.GenreId == genreId)
+                    .GroupBy(s => new
+                    {
+                        trackId = s.TrackId,
+                    })
+                    .Select(s => new 
+                    {
+                        trackId = s.Key.trackId,
+                        views = s.Sum(ss => ss.ViewCountsTotal),
+                        likes = s.Sum(ss => ss.Rating),
+                    })
+                    .OrderByDescending(s => s.views)
+                    .ThenByDescending(s => s.likes)
+                    .Take(limit)
+                    .ToList();
+
+                return topStats;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public OperationalStatus GetStats(int trackId)
         {
             int totalViews = 0;
@@ -31,6 +61,13 @@ namespace AudioStreamerAPI.DAO
                 var context = new fsnvdezgContext();
                 totalViews = context.Memberstats.Where(stat => stat.TrackId == trackId).Sum(v => v.ViewCountsTotal);
                 numberOfLikes = context.Memberstats.Where(stat => stat.TrackId == trackId).Sum(r => r.Rating);
+
+                return new OperationalStatus
+                {
+                    StatusCode = Constants.OperationalStatusEnums.Ok,
+                    Message = $"Successfully retrieved stats for track with id: {trackId}",
+                    Objects = new object[] { totalViews, numberOfLikes, },
+                };
             }
             catch (Exception ex)
             {
@@ -40,13 +77,6 @@ namespace AudioStreamerAPI.DAO
                     Message = ex.Message,
                 };
             }
-
-            return new OperationalStatus
-            {
-                StatusCode = Constants.OperationalStatusEnums.Ok,
-                Message = $"Successfully retrieved stats for track with id: {trackId}",
-                Objects = new object[] { totalViews, numberOfLikes, },
-            };
         }
 
         public Memberstat? GetStats(int userId, int trackId)
@@ -108,6 +138,7 @@ namespace AudioStreamerAPI.DAO
                     var context = new fsnvdezgContext();
                     context.Memberstats.Attach(statHasId);
 
+                    statHasId.GenreId = memberstat.GenreId;
                     statHasId.ViewCountsTotal++;
                     statHasId.Rating = memberstat.Rating;
 
@@ -221,6 +252,28 @@ namespace AudioStreamerAPI.DAO
                 {
                     StatusCode = Constants.OperationalStatusEnums.Ok,
                     Message = $"Deleted all stats of track with Id: {trackId}.",
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.BadRequest,
+                    Message = ex.Message,
+                };
+            }
+        }
+
+        public OperationalStatus ChangeGenreOfTrack(int trackId, int genreId)
+        {
+            try
+            {
+                var context = new fsnvdezgContext();
+                context.Database.ExecuteSqlInterpolated($"UPDATE Memberstats SET genre_id = {genreId} WHERE track_id = {trackId};");
+                return new OperationalStatus
+                {
+                    StatusCode = OperationalStatusEnums.Ok,
+                    Message = $"Changed stats genre of track: {trackId} to {genreId}.",
                 };
             }
             catch (Exception ex)

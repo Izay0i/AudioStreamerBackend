@@ -11,12 +11,30 @@ namespace AudioStreamerAPI.Controllers
     public class MemberstatsController : ControllerBase
     {
         private readonly IMemberstatsRepository _repo;
+        private readonly ITrackRepository _trackRepo;
         private readonly IMapper _mapper;
 
-        public MemberstatsController(IMemberstatsRepository repo, IMapper mapper)
+        public MemberstatsController(IMemberstatsRepository repo, ITrackRepository trackRepository, IMapper mapper)
         {
             _repo = repo;
+            _trackRepo = trackRepository;
             _mapper = mapper;
+        }
+
+        [HttpGet("top/{limit}/genre/{gId}")]
+        public async Task<ActionResult<IEnumerable<TrackDTO>>> GetTopTracksWithMostViewsAndLikesFromGenre(int limit, int gId)
+        {
+            var results = _repo.GetCustomStatsOfEachTrackWithMostViewsAndLikesFromGenre(gId, limit);
+            List<TrackDTO> tracks = new();
+            foreach (var result in results)
+            {
+                var track = _mapper.Map<TrackDTO>(_trackRepo.GetTrack(result.trackId));
+                if (track != null)
+                {
+                    tracks.Add(track);
+                }
+            }
+            return await Task.FromResult(tracks);
         }
 
         [HttpGet("track/{id}")]
@@ -77,6 +95,13 @@ namespace AudioStreamerAPI.Controllers
         public IActionResult DeleteStatsOfTrack(int id)
         {
             var result = _repo.DeleteStatsOfTrack(id);
+            return StatusCode((int)result.StatusCode, result);
+        }
+
+        [HttpPatch("track/{tId}/genre/{gId}")]
+        public IActionResult ChangeGenreOfTrack(int tId, int gId)
+        {
+            var result = _repo.ChangeGenreOfTrack(tId, gId);
             return StatusCode((int)result.StatusCode, result);
         }
     }
