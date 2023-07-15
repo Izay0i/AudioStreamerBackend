@@ -1,10 +1,8 @@
 using AudioStreamerAPI;
 using AudioStreamerAPI.Models;
 using AudioStreamerAPI.Repositories;
-using AudioStreamerAPI.DataModel;
 using AudioStreamerAPI.Constants;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.ML;
 using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,10 +29,7 @@ builder.Services.AddScoped<ITrackRepository, TrackRepository>();
 builder.Services.AddScoped<IPlaylistRepository, PlaylistRepository>();
 builder.Services.AddScoped<ICaptionRepository, CaptionRepository>();
 
-builder.Services.AddPredictionEnginePool<UserStats, RatingPrediction>()
-    .FromFile(NamedConstants.PREDICTION_MODEL_NAME, "model.zip", true);
-
-builder.Services.AddCors(options => options.AddPolicy("ApiCorsPolicy", 
+builder.Services.AddCors(options => options.AddPolicy(NamedConstants.CORS_POLICY_NAME, 
     policy =>
     {
         policy.WithOrigins("http://localhost:5173",
@@ -72,7 +67,7 @@ else
     app.UseSwaggerUI();
 }
 
-app.UseCors("ApiCorsPolicy");
+app.UseCors(NamedConstants.CORS_POLICY_NAME);
 
 app.UseHttpsRedirection();
 

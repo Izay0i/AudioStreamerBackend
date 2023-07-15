@@ -24,7 +24,7 @@ namespace AudioStreamerWebJobs
             var host = builder.Build();
             using (host)
             {
-                await host.StartAsync();
+                await host.RunAsync();
             }
         }
     }

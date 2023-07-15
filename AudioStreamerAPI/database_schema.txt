@@ -1,5 +1,5 @@
 /* Order of deletion:
-* ClosedCaption |& MemberStats > Track ~ Playlist > Member
+* ClosedCaption |& MemberStats > Track ~ Playlist > Genre ~ ArtistInfo ~ Member
 * |&: and or
 * ~ interchangeable
 */
@@ -18,9 +18,31 @@ create table Member(
 	constraint pk_member_id primary key(member_id)
 );
 
+create table Genre(
+	genre_id serial not null,
+	genre_name text not null,
+	date_created timestamp without time zone not null default now(),
+	constraint pk_genre_id primary key(genre_id)
+);
+
+create table ArtistInfo(
+	artistinfo_id serial not null,
+	artist_name text not null,
+	description text not null default '',
+	main_site_address text not null default '',
+	avatar text not null default '',
+	tracks_ids integer[] default '{}',
+	date_created timestamp without time zone not null default now(),
+	constraint pk_artistinfo_id primary key(artistinfo_id)
+);
+
 create table Track(
 	track_id serial not null,
 	member_id serial not null,
+	/*new*/
+	genre_id serial not null,
+	artistinfo_id serial not null,
+	/*new*/
 	track_name text not null,
 	artist_name text not null,
 	description text not null default '',
@@ -32,19 +54,23 @@ create table Track(
 	captions_length integer not null default 0,
 	date_created timestamp without time zone not null default now(),
 	constraint pk_track_id primary key(track_id),
-	constraint fk_member_id foreign key(member_id) references Member(member_id)
+	constraint fk_member_id foreign key(member_id) references Member(member_id),
+	constraint fk_genre_id foreign key(genre_id) references Genre(genre_id),
+	constraint fk_artistinfo_id foreign key(artistinfo_id) references ArtistInfo(artistinfo_id)
 );
 
 create table MemberStats(
 	member_id serial not null,
 	track_id serial not null,
+	genre_id serial not null,
 	view_counts_total integer not null default 1,
 	rating integer not null default 0,
 	tags text[] default '{}',
 	date_created timestamp without time zone not null default now(),
 	constraint pk_com_memstat primary key(member_id, track_id),
 	constraint fk_member_id foreign key(member_id) references Member(member_id),
-	constraint fk_track_id foreign key(track_id) references Track(track_id)
+	constraint fk_track_id foreign key(track_id) references Track(track_id),
+	constraint fk_genre_id foreign key(genre_id) references Genre(genre_id)
 );
 
 create table ClosedCaption(

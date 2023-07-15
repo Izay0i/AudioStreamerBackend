@@ -2,6 +2,6 @@
 {
     public static class NamedConstants
     {
-        public const string PREDICTION_MODEL_NAME = "RatingPredictionModel";
+        public const string CORS_POLICY_NAME = "ApiCorsPolicy";
     }
 }
