@@ -85,8 +85,8 @@ namespace AudioStreamerAPI.DAO
             try
             {
                 var context = new fsnvdezgContext();
-                var artists = context.Artistinfos.Where(a => a.ArtistinfoId == id).Select(a => a.ArtistName).ToList();
-                artistName = artists.FirstOrDefault() ?? "";
+                artistName = context.Artistinfos.Where(a => a.ArtistinfoId == id).Select(a => a.ArtistName).SingleOrDefault() ?? "";
+                //artistName = artists.FirstOrDefault() ?? "";
             }
             catch (Exception ex)
             {

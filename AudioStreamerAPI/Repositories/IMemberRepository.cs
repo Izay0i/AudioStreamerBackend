@@ -8,6 +8,7 @@ namespace AudioStreamerAPI.Repositories
         IEnumerable<Member> SearchMembers(string keyword);
         Member? GetMember(int id);
         Member? GetMember(string email);
+        string GetMemberAvatarUrl(int id);
         OperationalStatus AddMember(Member member);
         OperationalStatus UpdateMember(Member member);
         OperationalStatus DeleteMember(string email);

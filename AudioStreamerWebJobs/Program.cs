@@ -17,7 +17,7 @@ namespace AudioStreamerWebJobs
                 webJobs.AddAzureStorageBlobs();
             }).ConfigureServices(services =>
             {
-                services.AddTransient<Functions>();
+                services.AddSingleton<Disrupt>();
                 services.AddSingleton<ResetViews>();
             });
 

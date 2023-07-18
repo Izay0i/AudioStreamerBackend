@@ -86,6 +86,21 @@ namespace AudioStreamerAPI.DAO
             return member;
         }
 
+        public string GetMemberAvatarUrl(int id)
+        {
+            string url;
+            try
+            {
+                var context = new fsnvdezgContext();
+                url = context.Members.Where(m => m.MemberId == id).Select(m => m.Avatar).SingleOrDefault() ?? "";
+            }
+            catch (Exception ex)
+            {
+                url = ex.Message;
+            }
+            return url;
+        }
+
         public OperationalStatus AddMember(Member member)
         {
             Member? memberHasEmail = GetMember(member.Email);

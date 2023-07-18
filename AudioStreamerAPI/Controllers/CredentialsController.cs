@@ -36,8 +36,8 @@ namespace AudioStreamerAPI.Controllers
 
                 Member m = new()
                 {
-                    Email = credentials.Email,
-                    Password = credentials.Password,
+                    Email = credentials.Email.Trim(),
+                    Password = credentials.Password.Trim(),
                     DisplayName = credentials.DisplayName,
                 };
                 var result = _repo.AddMember(m);
@@ -53,10 +53,10 @@ namespace AudioStreamerAPI.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] CredentialsDTO credentials)
         {
-            var member = _repo.GetMember(credentials.Email);
+            var member = _repo.GetMember(credentials.Email.Trim());
             if (member != null)
             {
-                var result = CredentialsHelper.VerifyPassword(member.Password, credentials.Password);
+                var result = CredentialsHelper.VerifyPassword(member.Password.Trim(), credentials.Password.Trim());
                 return StatusCode((int)result.StatusCode, result.StatusCode == OperationalStatusEnums.Ok ? new OperationalStatus
                 {
                     StatusCode = OperationalStatusEnums.Ok,
@@ -78,17 +78,17 @@ namespace AudioStreamerAPI.Controllers
         [HttpPost("change")]
         public IActionResult ChangePassword([FromBody] CredentialsDTO credentials, [MinLength(LengthConstants.MIN_PASSWORD_LENGTH)] string newPassword)
         {
-            var member = _repo.GetMember(credentials.Email);
+            var member = _repo.GetMember(credentials.Email.Trim());
             if (member != null)
             {
-                var result = CredentialsHelper.VerifyPassword(member.Password, credentials.Password);
+                var result = CredentialsHelper.VerifyPassword(member.Password.Trim(), credentials.Password.Trim());
                 if (result.StatusCode == OperationalStatusEnums.Ok)
                 {
                     try
                     {
                         var context = new fsnvdezgContext();
                         context.Members.Attach(member);
-                        member.Password = CredentialsHelper.HashPassword(newPassword);
+                        member.Password = CredentialsHelper.HashPassword(newPassword.Trim());
                         context.SaveChanges();
                     }
                     catch (Exception ex)

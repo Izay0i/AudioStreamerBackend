@@ -50,6 +50,18 @@ namespace AudioStreamerAPI.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
+        [HttpGet("avatar/{id}")]
+        public IActionResult GetMemberAvatarUrl(int id)
+        {
+            string url = _repo.GetMemberAvatarUrl(id);
+            return Ok(new OperationalStatus
+            {
+                StatusCode = Constants.OperationalStatusEnums.Ok,
+                Message = "Wanna know the name? Devil May Cry 3",
+                Objects = new object[] { url },
+            });
+        }
+
         [HttpPatch("update")]
         public IActionResult UpdateMemberInfo([FromBody] MemberDTO memberDTO)
         {

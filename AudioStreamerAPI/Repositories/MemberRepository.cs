@@ -9,6 +9,7 @@ namespace AudioStreamerAPI.Repositories
         public IEnumerable<Member> SearchMembers(string keyword) => MemberDAO.Instance.SearchMembers(keyword);
         public Member? GetMember(int id) => MemberDAO.Instance.GetMember(id);
         public Member? GetMember(string email) => MemberDAO.Instance.GetMember(email);
+        public string GetMemberAvatarUrl(int id) => MemberDAO.Instance.GetMemberAvatarUrl(id);
         public OperationalStatus AddMember(Member member) => MemberDAO.Instance.AddMember(member);
         public OperationalStatus UpdateMember(Member member) => MemberDAO.Instance.UpdateMember(member);
         public OperationalStatus DeleteMember(string email) => MemberDAO.Instance.DeleteMember(email);

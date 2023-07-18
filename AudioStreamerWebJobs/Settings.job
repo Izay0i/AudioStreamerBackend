@@ -1,6 +1,10 @@
 {
   //    Runs every midnight
-        "schedule": "0 0 0 * * *"
+  //    "schedule": "0 0 0 * * *"
+
+  //    Runs every 5 minutes
+  "schedule": "0 */5 * * * *"
+
   //    Examples:
 
   //    Runs every minute
