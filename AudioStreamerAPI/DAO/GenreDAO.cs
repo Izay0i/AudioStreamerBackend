@@ -25,7 +25,7 @@ namespace AudioStreamerAPI.DAO
             try
             {
                 var context = new fsnvdezgContext();
-                genres = context.Genres.ToList();
+                genres = context.Genres.OrderBy(g => g.GenreId).ToList();
             }
             catch (Exception ex)
             {

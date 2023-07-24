@@ -25,7 +25,7 @@ namespace AudioStreamerAPI.DAO
             try
             {
                 var context = new fsnvdezgContext();
-                artists = context.Artistinfos.ToList();
+                artists = context.Artistinfos.OrderBy(artist => artist.ArtistinfoId).ToList();
             }
             catch (Exception ex)
             {
@@ -40,7 +40,7 @@ namespace AudioStreamerAPI.DAO
             try
             {
                 var context = new fsnvdezgContext();
-                tracks = context.Tracks.Where(t => t.ArtistinfoId == id).ToList();
+                tracks = context.Tracks.Where(t => t.ArtistinfoId == id).OrderByDescending(t => t.TrackId).ToList();
             }
             catch (Exception ex)
             {
